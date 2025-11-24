@@ -2,52 +2,65 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>小红书封面批量工厂 (修复乱码版)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <title>小红书封面批量工厂 (国内极速版)</title>
+    
+    <!-- 🔴 关键修改：使用了国内 BootCDN 加速节点，防止加载失败 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
     <style>
         body { font-family: -apple-system, sans-serif; background: #f5f5f7; padding: 20px; color: #333; }
         .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         h1 { color: #ff2442; margin-top: 0; }
         .step { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px dashed #eee; }
-        .step h3 { margin: 0 0 10px 0; font-size: 16px; color: #555; }
-        .upload-box { border: 2px dashed #ddd; padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.2s; background: #fafafa; }
-        #logArea { background: #1e1e1e; color: #0f0; font-family: "Consolas", monospace; padding: 15px; height: 300px; overflow-y: auto; border-radius: 8px; font-size: 12px; margin-bottom: 20px; white-space: pre-wrap; line-height: 1.5; }
+        
+        #logArea { 
+            background: #1e1e1e; color: #0f0; font-family: monospace; 
+            padding: 15px; height: 250px; overflow-y: auto; 
+            border-radius: 8px; font-size: 13px; margin-bottom: 20px; 
+            white-space: pre-wrap; line-height: 1.6;
+        }
+
         .btn { background: #ff2442; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; }
         .btn:disabled { background: #ccc; cursor: not-allowed; }
         
-        /* 新增：编码选择器样式 */
-        .encoding-select {
-            padding: 8px; border-radius: 4px; border: 1px solid #ddd; background: #fff; margin-left: 10px; font-size: 13px; color: #333;
-        }
+        .encoding-select { padding: 5px; margin-left: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        /* 状态指示灯 */
+        .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ccc; margin-right: 5px; }
+        .status-ok { background: #52c41a; }
+        .status-err { background: #ff4d4f; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🏭 批量封面生成工厂 (修复乱码版)</h1>
-    <p style="color:#666; font-size:13px;">如果日志里出现乱码，请尝试切换下方的“表格编码”选项，然后重新上传表格。</p>
-
-    <div class="step">
-        <h3>
-            1. 上传 CSV 表格 
-            <select id="encodingOpt" class="encoding-select">
-                <option value="GBK" selected>编码：GBK (Excel默认)</option>
-                <option value="UTF-8">编码：UTF-8 (通用)</option>
-            </select>
-        </h3>
-        <p style="font-size:12px; color:#999;">⚠️ 只有4列数据：路径 | 标题 | 标签1 | 标签2</p>
-        <input type="file" id="csvFile" accept=".csv" style="display:block; width:100%; padding:10px;">
+    <h1>🏭 批量封面工厂 (国内极速版)</h1>
+    
+    <!-- 系统状态检查栏 -->
+    <div style="background:#f0f9ff; padding:10px; border-radius:6px; font-size:12px; margin-bottom:20px; color:#333;">
+        <span id="libStatus" class="status-dot"></span> 
+        <span id="libText">正在连接工具库...</span>
     </div>
 
     <div class="step">
-        <h3>2. 选择包含图片的“父级文件夹”</h3>
-        <p style="font-size:12px; color:#999;">选中包含所有图片的那个大文件夹（例如 D:\浏览器下载安装）</p>
-        <input type="file" id="imageFolder" webkitdirectory directory multiple style="display:block; width:100%; padding:10px;">
+        <h3>1. 上传 CSV 表格 
+            <select id="encodingOpt" class="encoding-select">
+                <option value="GBK" selected>编码：GBK (乱码选这个)</option>
+                <option value="UTF-8">编码：UTF-8 (推荐)</option>
+            </select>
+        </h3>
+        <!-- onclick="this.value=null" 确保哪怕选同一个文件也能触发反应 -->
+        <input type="file" id="csvFile" accept=".csv" onclick="this.value=null" style="display:block; width:100%; padding:10px;">
+    </div>
+
+    <div class="step">
+        <h3>2. 选择包含图片的文件夹</h3>
+        <input type="file" id="imageFolder" webkitdirectory directory multiple onclick="this.value=null" style="display:block; width:100%; padding:10px;">
     </div>
 
     <div id="logArea">等待操作...</div>
-    <button id="startBtn" class="btn" disabled>🚀 开始匹配并生成 ZIP</button>
+    <button id="startBtn" class="btn" disabled>🚀 准备就绪后点击这里</button>
 </div>
 
 <canvas id="hiddenCanvas" width="1080" height="1440" style="display:none;"></canvas>
@@ -58,53 +71,76 @@
     const canvas = document.getElementById('hiddenCanvas');
     const ctx = canvas.getContext('2d');
     const encodingSelect = document.getElementById('encodingOpt');
+    
+    // 状态指示
+    const libStatus = document.getElementById('libStatus');
+    const libText = document.getElementById('libText');
 
     let csvData = [];
     let imageMap = {}; 
 
+    // --- 0. 开机自检 (关键) ---
+    window.onload = function() {
+        setTimeout(() => {
+            if (typeof JSZip !== 'undefined' && typeof saveAs !== 'undefined') {
+                libStatus.className = "status-dot status-ok";
+                libText.innerHTML = "✅ 核心工具库加载成功！系统正常。";
+                log("系统启动成功，请上传文件。");
+            } else {
+                libStatus.className = "status-dot status-err";
+                libText.innerHTML = "❌ 工具库加载失败！请尝试刷新页面，或更换网络。";
+                log("❌ 严重错误：JSZip 或 FileSaver 未加载。请刷新页面重试。", true);
+                alert("系统警告：工具库加载失败，功能无法使用！\n请刷新网页重试。");
+            }
+        }, 500);
+    };
+
     function log(msg, isError = false) {
         const color = isError ? '#ff4d4f' : '#0f0';
-        logArea.innerHTML += `<span style="color:${color}">${msg}</span>\n`;
+        const time = new Date().toLocaleTimeString();
+        logArea.innerHTML += `<div style="color:${color}">[${time}] ${msg}</div>`;
         logArea.scrollTop = logArea.scrollHeight;
     }
 
-    // 监听编码切换，如果用户切换了编码，清空数据提示重新上传
+    // 监听编码切换
     encodingSelect.addEventListener('change', () => {
         csvData = [];
-        document.getElementById('csvFile').value = ''; 
-        logArea.innerHTML = "已切换编码格式，请【重新上传】CSV表格文件！\n";
+        log("🔄 编码已切换，请【重新上传】CSV表格！");
     });
 
-    // 1. 解析 CSV (带编码控制)
+    // --- 1. CSV 处理 (带强制反馈) ---
     document.getElementById('csvFile').addEventListener('change', function(e) {
+        log("📄 检测到 CSV 文件选择...");
         const file = e.target.files[0];
-        if (!file) return;
+        if (!file) {
+            log("❌ 未选择文件", true);
+            return;
+        }
 
-        const encoding = encodingSelect.value; // 获取当前选择的编码
-        log(`正在尝试用 ${encoding} 格式读取表格...`);
-
+        const encoding = encodingSelect.value;
         const reader = new FileReader();
+        
         reader.onload = function(evt) {
             const text = evt.target.result;
             const rows = text.split('\n');
             csvData = [];
-            
-            // 预览前几行数据，检查是否乱码
-            let previewLog = "";
-            
+            let previewText = "";
+            let hasGarbage = false;
+
             rows.forEach((row, index) => {
                 if(!row.trim()) return;
-                // 处理 CSV 逗号分割，同时处理可能存在的引号
-                // 简单正则处理 CSV 列
                 let cols = row.split(','); 
                 
                 if (cols.length >= 2) {
                     const fullPath = cols[0].trim();
                     const title = (cols[1] || "").replace(/"/g, '').trim();
                     
-                    if(index < 3) {
-                        previewLog += `   [预览第${index+1}行] 路径: ${fullPath} | 标题: ${title}\n`;
+                    // 乱码检测逻辑：包含  符号
+                    if (fullPath.includes('') || title.includes('')) {
+                        hasGarbage = true;
                     }
+
+                    if(index < 2) previewText += `   示例: ${fullPath} | ${title}\n`;
 
                     csvData.push({
                         fullPath: fullPath,
@@ -115,111 +151,130 @@
                 }
             });
 
-            log(previewLog);
-            if (previewLog.includes("")) {
-                log("❌ 检测到乱码！请在上方的下拉菜单切换编码格式 (GBK <-> UTF-8)，然后重新上传表格！", true);
-                csvData = []; // 清空错误数据
+            if (hasGarbage) {
+                log("❌ 检测到严重乱码！", true);
+                log("👉 请看上方预览：" + previewText.split('\n')[0], true);
+                log("👉 解决办法：请切换上方的【编码】选项 (GBK/UTF-8)，然后重新上传！", true);
+                alert("检测到乱码！请切换顶部的“表格编码”选项，然后重新上传。");
+                csvData = [];
             } else {
-                log(`✅ 表格读取成功: ${csvData.length} 条数据 (无乱码)`);
+                log(previewText);
+                log(`✅ 表格读取成功，共 ${csvData.length} 条数据。`);
             }
             checkReady();
         };
-        
-        reader.onerror = () => log("读取文件失败", true);
-        reader.readAsText(file, encoding); 
+
+        reader.onerror = () => { log("❌ 文件读取发生错误", true); };
+        try {
+            reader.readAsText(file, encoding);
+        } catch(err) {
+            log("❌ 无法读取文件: " + err.message, true);
+        }
     });
 
-    // 2. 扫描文件夹
+    // --- 2. 文件夹处理 ---
     document.getElementById('imageFolder').addEventListener('change', function(e) {
+        log("📂 检测到文件夹选择...");
         const files = e.target.files;
+        if(files.length === 0) {
+            log("⚠️ 文件夹是空的或未授权读取。", true);
+            return;
+        }
+        
         imageMap = {};
         let count = 0;
         
-        log(`📂 正在扫描文件夹... (检测到 ${files.length} 个文件)`);
-
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             if (file.type.startsWith('image/')) {
-                // 只存文件名
                 imageMap[file.name] = file;
                 count++;
             }
         }
-        log(`✅ 图片索引建立完成，有效图片: ${count} 张`);
+        log(`✅ 文件夹扫描完成，发现 ${count} 张图片。`);
         checkReady();
     });
 
     function checkReady() {
         if (csvData.length > 0 && Object.keys(imageMap).length > 0) {
             startBtn.disabled = false;
-            startBtn.innerHTML = `🚀 开始匹配生成 (${csvData.length} 个任务)`;
+            startBtn.innerHTML = `🚀 开始批量生成 (${csvData.length} 张)`;
+            startBtn.style.backgroundColor = "#ff2442";
         } else {
             startBtn.disabled = true;
+            startBtn.style.backgroundColor = "#ccc";
         }
     }
 
-    // 3. 执行生成
+    // --- 3. 生成逻辑 ---
     startBtn.addEventListener('click', async function() {
+        if (typeof JSZip === 'undefined') {
+            alert("错误：JSZip 工具库丢失，请刷新页面！");
+            return;
+        }
+
         startBtn.disabled = true;
+        startBtn.innerHTML = "⏳ 正在努力生成中...";
+        
         const zip = new JSZip();
         const folder = zip.folder("小红书批量封面");
         let successCount = 0;
         let failCount = 0;
 
-        log("--- 开始批量渲染 ---");
+        log("--- 开始任务 ---");
 
         for (let i = 0; i < csvData.length; i++) {
             const item = csvData[i];
             
-            // 提取文件名
             let targetFileName = item.fullPath.split('\\').pop().split('/').pop();
-            targetFileName = targetFileName.replace(/"/g, '').trim(); // 清理可能的引号
+            targetFileName = targetFileName.replace(/"/g, '').trim();
 
             const imgFile = imageMap[targetFileName];
 
             if (imgFile) {
-                log(`[${i+1}/${csvData.length}] 正在处理: ${item.title}`);
+                // log(`正在处理: ${item.title}`); // 减少刷屏
                 try {
                     const blob = await renderCover(
                         imgFile, 
-                        item.title, 
+                        item.title || "未命名", 
                         "网盘直发 | 4K修复 | 永久保存", 
                         item.tag1 || "推荐", 
                         item.tag2 || "影视"
                     );
-                    const safeTitle = (item.title || "未命名").replace(/[\\/:*?"<>|]/g, "_");
+                    const safeTitle = (item.title || "image_" + i).replace(/[\\/:*?"<>|]/g, "_");
                     folder.file(`${safeTitle}.png`, blob);
                     successCount++;
                 } catch (err) {
-                    log(`❌ 渲染错误: ${err}`, true);
+                    console.error(err);
                 }
             } else {
                 failCount++;
-                // 仅显示前5个找不到的错误，避免刷屏
-                if(failCount < 5) {
-                    log(`⚠️ 跳过: 没找到图片 "${targetFileName}" (请检查表格里的文件名是否和文件夹里的一致)`, true);
-                }
+            }
+            
+            // 简单的进度显示
+            if (i % 5 === 0) {
+                startBtn.innerHTML = `⏳ 进度: ${Math.floor((i/csvData.length)*100)}%`;
             }
         }
 
-        if(failCount >= 5) log(`... 还有 ${failCount - 5} 张图片未找到，已省略显示。`, true);
-
-        log(`--- 任务结束: 成功 ${successCount} 张，失败 ${failCount} 张 ---`);
+        log(`🎉 任务结束！成功: ${successCount} 张，失败(没找到图): ${failCount} 张`);
         
         if (successCount > 0) {
-            log("📦 正在打包 ZIP，请稍候...");
+            log("📦 正在压缩打包，请稍候...");
             zip.generateAsync({type:"blob"}).then(function(content) {
-                saveAs(content, "封面打包_修复版.zip");
+                saveAs(content, "批量封面_极速版.zip");
+                startBtn.innerHTML = "✅ 下载完成 (再次点击可重下)";
                 startBtn.disabled = false;
-                startBtn.innerHTML = "✅ 下载完成";
             });
         } else {
-            log("❌ 没有生成任何图片，请检查乱码或文件名匹配问题。", true);
+            log("❌ 失败：没有生成任何图片。请检查文件名是否匹配。", true);
+            alert("没有匹配到任何图片！\n请检查Excel里的文件名和文件夹里的文件名是否一致。");
             startBtn.disabled = false;
+            startBtn.innerHTML = "❌ 失败，点击重试";
         }
     });
 
-    // --- 渲染逻辑 (保持不变) ---
+    // --- 绘图引擎 (固定配置) ---
     function renderCover(imgFile, title, subTitle, tag1, tag2) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -229,7 +284,6 @@
                     draw(img, title, subTitle, tag1, tag2);
                     canvas.toBlob(resolve, 'image/png');
                 };
-                img.onerror = reject;
                 img.src = event.target.result;
             };
             reader.readAsDataURL(imgFile);
@@ -239,58 +293,51 @@
     function draw(img, title, subTitle, tag1, tag2) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         // 背景
-        ctx.save();
-        ctx.filter = 'blur(35px) brightness(0.65) saturate(1.2)';
-        drawImageProp(ctx, img, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
-        // iPad
-        const padW = 900, padH = 650;
-        const padX = (canvas.width - padW) / 2;
-        const padY = 380;
-        ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 30;
-        ctx.fillStyle = "#111";
-        roundRect(ctx, padX, padY, padW, padH, 24, true, false);
-        ctx.shadowColor = "transparent";
-        const margin = 18;
-        const sX = padX + margin, sY = padY + margin, sW = padW - margin*2, sH = padH - margin*2;
-        ctx.save();
-        roundRect(ctx, sX, sY, sW, sH, 8, false, false);
-        ctx.clip();
-        drawImageProp(ctx, img, sX, sY, sW, sH);
-        ctx.restore();
+        ctx.save(); ctx.filter = 'blur(35px) brightness(0.65) saturate(1.2)';
+        drawImageProp(ctx, img, 0, 0, canvas.width, canvas.height); ctx.restore();
+        
+        // iPad 框
+        const padW = 900, padH = 650, padX = (canvas.width-padW)/2, padY = 380;
+        ctx.shadowColor="rgba(0,0,0,0.5)"; ctx.shadowBlur=40; ctx.shadowOffsetY=30;
+        ctx.fillStyle="#111"; roundRect(ctx, padX, padY, padW, padH, 24, true, false);
+        
+        ctx.shadowColor="transparent";
+        const m=18, sX=padX+m, sY=padY+m, sW=padW-m*2, sH=padH-m*2;
+        ctx.save(); roundRect(ctx, sX, sY, sW, sH, 8, false, false); ctx.clip();
+        drawImageProp(ctx, img, sX, sY, sW, sH); ctx.restore();
+
         // 放大镜
-        const lensX = 540, lensY = 600, lensR = 130;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(lensX, lensY, lensR, 0, Math.PI*2);
-        ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 20; ctx.lineWidth = 8; ctx.strokeStyle = "#fff";
+        const lx=540, ly=600, lr=130;
+        ctx.save(); ctx.beginPath(); ctx.arc(lx, ly, lr, 0, Math.PI*2);
+        ctx.shadowColor="rgba(0,0,0,0.4)"; ctx.shadowBlur=20; ctx.lineWidth=8; ctx.strokeStyle="#fff";
         ctx.stroke(); ctx.clip();
-        const zoomLevel = 2;
-        const renderInfo = getDrawImagePropInfo(img, sX, sY, sW, sH);
-        const relX = (lensX - renderInfo.x) / renderInfo.w;
-        const relY = (lensY - renderInfo.y) / renderInfo.h;
-        const zoomW = sW * zoomLevel, zoomH = sH * zoomLevel;
-        const zoomX = lensX - (relX * zoomW);
-        const zoomY = lensY - (relY * zoomH);
-        ctx.filter = 'contrast(1.3) saturate(1.3) brightness(1.1)';
-        ctx.drawImage(img, renderInfo.sx, renderInfo.sy, renderInfo.sw, renderInfo.sh, zoomX, zoomY, zoomW, zoomH);
+        
+        const rInfo = getDrawImagePropInfo(img, sX, sY, sW, sH);
+        const relX=(lx-rInfo.x)/rInfo.w, relY=(ly-rInfo.y)/rInfo.h;
+        const zW=sW*2, zH=sH*2, zX=lx-(relX*zW), zY=ly-(relY*zH);
+        
+        ctx.filter='contrast(1.3) saturate(1.3) brightness(1.1)';
+        ctx.drawImage(img, rInfo.sx, rInfo.sy, rInfo.sw, rInfo.sh, zX, zY, zW, zH);
         ctx.restore();
-        // 标签
-        drawBadge(ctx, lensX + 90, lensY + 100, "🔍 细节爆炸", "#ffcc00", "#000");
-        if(tag1) drawGlassTag(ctx, tag1, padX, padY - 35);
-        if(tag2) drawGlassTag(ctx, tag2, padX + padW - 200, padY + padH - 25);
-        ctx.textAlign = "center";
-        ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 15; ctx.shadowOffsetY = 5;
-        let fontSize = 85;
-        if (title.length > 8) fontSize = 65;
-        if (title.length > 12) fontSize = 55;
-        ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
-        ctx.fillStyle = "#fff";
-        ctx.fillText(title, canvas.width / 2, 250);
-        ctx.font = "500 32px sans-serif";
-        ctx.fillStyle = "rgba(255,255,255,0.9)";
-        ctx.shadowBlur = 0;
-        ctx.fillText(subTitle, canvas.width / 2, 1150);
+
+        // 文字
+        drawBadge(ctx, lx+90, ly+100, "🔍 细节爆炸", "#ffcc00", "#000");
+        if(tag1) drawGlassTag(ctx, tag1, padX, padY-35);
+        if(tag2) drawGlassTag(ctx, tag2, padX+padW-200, padY+padH-25);
+        
+        ctx.textAlign="center"; ctx.shadowColor="rgba(0,0,0,0.5)"; ctx.shadowBlur=15; ctx.shadowOffsetY=5;
+        let fs=85; if(title.length>8) fs=65; if(title.length>12) fs=55;
+        ctx.font=`bold ${fs}px -apple-system, sans-serif`; ctx.fillStyle="#fff";
+        ctx.fillText(title, canvas.width/2, 250);
+        ctx.font="500 32px sans-serif"; ctx.fillStyle="rgba(255,255,255,0.9)"; ctx.shadowBlur=0;
+        ctx.fillText(subTitle, canvas.width/2, 1150);
     }
 
-    function roundRect(ctx, x, y, w, h, r, f, s) { ctx.beginPath(); ctx.roundRe
+    function roundRect(ctx, x, y, w, h, r, f, s) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); if(f) ctx.fill(); if(s) ctx.stroke(); }
+    function drawGlassTag(ctx, t, x, y) { if(!t)return; ctx.save(); ctx.font="bold 26px sans-serif"; const w=ctx.measureText(t).width+40, h=56; ctx.fillStyle="rgba(255,255,255,0.2)"; ctx.strokeStyle="rgba(255,255,255,0.3)"; ctx.lineWidth=1; ctx.beginPath(); ctx.roundRect(x, y, w, h, 28); ctx.fill(); ctx.stroke(); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(t, x+w/2, y+h/2+2); ctx.restore(); }
+    function drawBadge(ctx, x, y, t, bg, c) { ctx.save(); ctx.font="bold 22px sans-serif"; const w=ctx.measureText(t).width+30; ctx.fillStyle=bg; ctx.beginPath(); ctx.roundRect(x, y, w, 40, 20); ctx.fill(); ctx.fillStyle=c; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(t, x+w/2, y+22); ctx.restore(); }
+    function drawImageProp(ctx, img, x, y, w, h) { const i=getDrawImagePropInfo(img, x, y, w, h); ctx.drawImage(img, i.sx, i.sy, i.sw, i.sh, i.x, i.y, i.w, i.h); }
+    function getDrawImagePropInfo(img, x, y, w, h) { var iw=img.width, ih=img.height, r=Math.min(w/iw, h/ih), nw=iw*r, nh=ih*r, ar=1; if(nw<w) ar=w/nw; if(Math.abs(ar-1)<1e-14 && nh<h) ar=h/nh; nw*=ar; nh*=ar; var cw=iw/(nw/w), ch=ih/(nh/h), cx=(iw-cw)*0.5, cy=(ih-ch)*0.5; if(cx<0) cx=0; if(cy<0) cy=0; if(cw>iw) cw=iw; if(ch>ih) ch=ih; return {sx:cx, sy:cy, sw:cw, sh:ch, x:x, y:y, w:nw, h:nh}; }
+</script>
+</body>
+</html>
