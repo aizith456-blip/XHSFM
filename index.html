@@ -2,108 +2,162 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>小红书封面工厂 (V10.1 原名输出版)</title>
-    <script src="https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小红书封面工厂 (V11.0 国内极速版)</title>
+    
+    <!-- 🔴 核心修改：使用七牛云 Staticfile 国内源，极速稳定 -->
+    <script src="https://cdn.staticfile.org/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.staticfile.org/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
     <style>
-        body { font-family: -apple-system, "PingFang SC", sans-serif; background: #e0e5ec; padding: 20px; color: #333; user-select: none; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 20px;}
+        /* 基础重置 */
+        body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #e0e5ec; padding: 20px; color: #333; user-select: none; margin: 0; }
+        .container { max-width: 1100px; margin: 0 auto; background: white; padding: 30px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 20px;}
         
-        .header { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-        h1 { margin: 0; background: linear-gradient(45deg, #ff2442, #ff5e7e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
-        
-        .main-content { display: flex; gap: 30px; align-items: flex-start; }
-        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 20px; min-width: 300px; }
-        .preview-area { flex: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f7f9fc; padding: 20px; border-radius: 16px; border: 2px dashed #dde2e6; position: relative; }
+        /* 标题 */
+        .header { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 20px; position: relative; }
+        h1 { margin: 0; background: linear-gradient(45deg, #ff2442, #ff5e7e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; letter-spacing: -1px; }
+        .badge { background: #e6f7ff; color: #1890ff; font-size: 12px; padding: 2px 8px; border-radius: 4px; border: 1px solid #91d5ff; vertical-align: middle; margin-left: 10px; font-weight: normal; -webkit-text-fill-color: #1890ff; }
 
-        .card { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #edf2f7; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        .card h3 { margin: 0 0 10px 0; font-size: 14px; color: #666; }
+        /* 布局 */
+        .main-content { display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
+        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 320px; }
+        .preview-area { flex: 1.5; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f7f9fc; padding: 20px; border-radius: 16px; border: 2px dashed #dde2e6; position: relative; min-width: 320px; }
+
+        /* 卡片组件 */
+        .card { background: #fff; padding: 18px; border-radius: 12px; border: 1px solid #edf2f7; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: 0.2s; }
+        .card:hover { border-color: #ff2442; transform: translateY(-2px); }
+        .card h3 { margin: 0 0 12px 0; font-size: 15px; color: #444; font-weight: 700; border-left: 4px solid #ff2442; padding-left: 10px; }
         
+        /* 控件 */
+        select, input[type="file"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; box-sizing: border-box; }
+        
+        /* 画布 */
         #mainCanvas { 
-            width: 100%; max-width: 400px; height: auto; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-radius: 8px; cursor: move; 
-            transition: transform 0.1s;
+            width: 100%; max-width: 420px; height: auto; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15); border-radius: 12px; cursor: grab; 
+            transition: transform 0.1s; background: #fff;
         }
-        #mainCanvas:active { cursor: grabbing; transform: scale(0.98); }
+        #mainCanvas:active { cursor: grabbing; transform: scale(0.99); }
 
-        .nav-btn-group { display: flex; gap: 10px; margin-top: 15px; width: 100%; max-width: 400px; }
-        .nav-btn { flex: 1; padding: 10px; border: none; background: #eee; border-radius: 8px; cursor: pointer; font-weight: bold; color: #555; transition: 0.2s; }
-        .nav-btn:hover { background: #ddd; }
+        /* 导航按钮 */
+        .nav-btn-group { display: flex; gap: 10px; margin-top: 20px; width: 100%; max-width: 420px; }
+        .nav-btn { flex: 1; padding: 12px; border: none; background: #fff; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; color: #555; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .nav-btn:hover { background: #f5f5f5; border-color: #bbb; }
 
-        .range-wrap { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: bold; color: #555; }
-        input[type="range"] { flex: 1; accent-color: #ff2442; }
+        /* 滑杆 */
+        .range-wrap { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: bold; color: #555; margin-top: 10px; }
+        input[type="range"] { flex: 1; accent-color: #ff2442; cursor: pointer; }
 
+        /* 复选框组 */
+        .checkbox-group { display: flex; gap: 15px; margin-top: 15px; }
+        .checkbox-item { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; color: #666; }
+        .checkbox-item input { accent-color: #ff2442; width: 16px; height: 16px; }
+
+        /* 主按钮 */
         .action-btn { 
             background: linear-gradient(135deg, #ff2442 0%, #ff6b81 100%); 
-            color: white; border: none; padding: 18px; border-radius: 12px; 
+            color: white; border: none; padding: 20px; border-radius: 12px; 
             font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; 
-            box-shadow: 0 10px 20px rgba(255, 36, 66, 0.3); transition: 0.3s; 
+            box-shadow: 0 10px 20px rgba(255, 36, 66, 0.3); transition: 0.3s; margin-top: 10px;
         }
         .action-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(255, 36, 66, 0.4); }
         .action-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 
-        .hint { font-size: 12px; color: #999; text-align: center; margin-top: 10px; }
-        #previewInfo { font-family: monospace; font-size: 12px; color: #888; margin-top: 10px; word-break: break-all; text-align: center;}
+        .hint { font-size: 12px; color: #999; text-align: center; margin-top: 15px; }
+        #previewInfo { font-family: monospace; font-size: 12px; color: #666; margin-top: 15px; background: #fff; padding: 8px; border-radius: 6px; border: 1px solid #eee; width: 100%; box-sizing: border-box; text-align: center;}
+
+        /* 加载遮罩 */
+        #loadingMask {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
+        }
+        .loader { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #ff2442; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+<!-- 加载遮罩 -->
+<div id="loadingMask">
+    <div class="loader"></div>
+    <p style="margin-top:20px; color:#555; font-weight:bold;">正在接入国内加速节点...</p>
+</div>
+
 <div class="container">
     <div class="header">
-        <h1>🎨 封面工厂 V10.1 <span style="font-size:0.5em; color:#999; -webkit-text-fill-color:#999;">原名输出版</span></h1>
+        <h1>🎨 封面工厂 V11.0 <span class="badge">国内极速版</span></h1>
     </div>
 
     <div class="main-content">
+        <!-- 左侧操作栏 -->
         <div class="sidebar">
             <div class="card">
                 <h3>1. 导入数据 (CSV)</h3>
-                <select id="encodingOpt" style="margin-bottom:5px; padding:5px; width:100%">
-                    <option value="GBK">GBK (推荐)</option>
-                    <option value="UTF-8">UTF-8</option>
+                <select id="encodingOpt" style="margin-bottom:10px;">
+                    <option value="GBK">编码：GBK (推荐)</option>
+                    <option value="UTF-8">编码：UTF-8</option>
                 </select>
-                <input type="file" id="csvFile" accept=".csv" onclick="this.value=null" style="width:100%">
+                <input type="file" id="csvFile" accept=".csv" onclick="this.value=null">
             </div>
 
             <div class="card">
                 <h3>2. 导入图片文件夹</h3>
-                <input type="file" id="imageFolder" webkitdirectory directory multiple onclick="this.value=null" style="width:100%">
+                <input type="file" id="imageFolder" webkitdirectory directory multiple onclick="this.value=null">
             </div>
 
             <div class="card">
-                <h3>3. 构图调整 (全局应用)</h3>
+                <h3>3. 构图微调 (全局生效)</h3>
                 <div class="range-wrap">
-                    <span>缩放</span>
+                    <span>🔍 缩放画面</span>
                     <input type="range" id="zoomSlider" min="1.0" max="2.5" step="0.05" value="1.3">
-                    <span id="zoomVal">1.3x</span>
+                    <span id="zoomVal" style="color:#ff2442; min-width:40px; text-align:right;">1.3x</span>
                 </div>
-                <p style="font-size:11px; color:#ff2442; margin-top:5px;">💡 提示：在右侧画面中【按住鼠标拖动】可调整位置</p>
-                <hr style="border:0; border-top:1px dashed #eee; margin:10px 0;">
-                <div style="display:flex; gap:10px;">
-                    <label><input type="checkbox" id="dynamicBg" checked> 氛围背景</label>
-                    <label><input type="checkbox" id="showGlass" checked> 放大镜</label>
+                
+                <div class="checkbox-group">
+                    <label class="checkbox-item"><input type="checkbox" id="dynamicBg" checked> 氛围背景</label>
+                    <label class="checkbox-item"><input type="checkbox" id="showGlass" checked> 放大镜</label>
                 </div>
             </div>
 
-            <button id="startBtn" class="action-btn" disabled>📥 批量生成 (保持原名)</button>
-            <div id="statusLog" style="font-size:12px; color:#666; text-align:center; margin-top:10px;">等待数据...</div>
+            <button id="startBtn" class="action-btn" disabled>📥 批量生成 (原名输出)</button>
+            <div id="statusLog" style="font-size:13px; color:#ff2442; text-align:center; font-weight:bold;">等待上传...</div>
         </div>
 
+        <!-- 右侧预览区 -->
         <div class="preview-area">
             <canvas id="mainCanvas" width="1080" height="1440"></canvas>
+            
             <div class="nav-btn-group">
                 <button class="nav-btn" onclick="prevImage()">⬅️ 上一张</button>
-                <div style="align-self:center; font-size:12px; color:#999;" id="pageIndicator">0 / 0</div>
+                <div style="font-size:14px; font-weight:bold; color:#333; min-width:60px; text-align:center;" id="pageIndicator">0 / 0</div>
                 <button class="nav-btn" onclick="nextImage()">下一张 ➡️</button>
             </div>
-            <div id="previewInfo"></div>
-            <div class="hint">✨ 拖动画面调整构图 | 生成文件将保持原始文件名</div>
+            
+            <div id="previewInfo">请先上传文件进行预览</div>
+            <div class="hint">✨ 在画面上【按住鼠标拖动】可调整人物位置</div>
         </div>
     </div>
 </div>
 
 <script>
+    // --- 系统自检 ---
+    window.onload = function() {
+        // 检查库是否加载
+        if (typeof JSZip !== 'undefined' && typeof saveAs !== 'undefined') {
+            setTimeout(() => {
+                document.getElementById('loadingMask').style.display = 'none';
+            }, 500); // 稍微停留一下，让用户感觉到检查过程
+        } else {
+            document.querySelector('#loadingMask p').innerHTML = 
+                "<span style='color:red'>❌ 网络错误：工具库加载失败。</span><br>请检查网络或刷新页面。";
+        }
+    };
+
+    // --- 核心变量 ---
     const canvas = document.getElementById('mainCanvas');
     const ctx = canvas.getContext('2d');
+    
     const zoomSlider = document.getElementById('zoomSlider');
     const zoomVal = document.getElementById('zoomVal');
     const statusLog = document.getElementById('statusLog');
@@ -124,6 +178,7 @@
         lastMouseY: 0
     };
 
+    // --- 交互事件 ---
     zoomSlider.oninput = function() {
         state.scale = parseFloat(this.value);
         zoomVal.innerText = state.scale.toFixed(1) + "x";
@@ -153,27 +208,36 @@
 
     window.addEventListener('mouseup', () => {
         state.isDragging = false;
-        canvas.style.cursor = 'move';
+        canvas.style.cursor = 'grab';
     });
 
     document.getElementById('dynamicBg').onchange = renderCurrentFrame;
     document.getElementById('showGlass').onchange = renderCurrentFrame;
 
+    // --- 工具函数 ---
     function cleanFileName(path) {
         if (!path) return "";
         return path.replace(/\\/g, '/').split('/').pop().replace(/"/g, '').trim();
     }
 
     function cleanTitleText(text) {
-        return text.replace(/\?\?/g, "").replace(/SOS/ig, "").replace(/【.*?】/g, "").replace(/[^\u4e00-\u9fa5a-zA-Z0-9]$/, "").trim();
+        return text.replace(/\?\?/g, "")
+                   .replace(/SOS/ig, "")
+                   .replace(/【.*?】/g, "")
+                   .replace(/[^\u4e00-\u9fa5a-zA-Z0-9]$/, "") // 去除尾部乱码
+                   .trim();
     }
 
+    // --- 文件上传 ---
     document.getElementById('csvFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(evt) {
             const text = evt.target.result;
+            // Excel 检查
+            if (text.startsWith("PK")) { alert("请勿直接上传 Excel！请另存为 CSV 格式。"); return; }
+            
             const lines = text.split('\n').filter(line => line.trim() !== "");
             state.csvData = [];
             lines.forEach(row => {
@@ -187,7 +251,7 @@
                     });
                 }
             });
-            statusLog.innerText = `✅ 表格加载：${state.csvData.length} 条`;
+            statusLog.innerText = `✅ 已加载表格：${state.csvData.length} 条`;
             checkReady();
         };
         reader.readAsText(file, document.getElementById('encodingOpt').value);
@@ -203,7 +267,7 @@
                 count++;
             }
         }
-        statusLog.innerText = `📂 图片加载：${count} 张`;
+        statusLog.innerText = `📂 已加载图片：${count} 张`;
         checkReady();
     });
 
@@ -211,11 +275,13 @@
         if (state.csvData.length > 0 && Object.keys(state.imageMap).length > 0) {
             startBtn.disabled = false;
             statusLog.innerText = "🎉 准备就绪";
+            statusLog.style.color = "#1890ff";
             state.currentIndex = 0;
             loadAndPreviewImage(0); 
         }
     }
 
+    // --- 导航 ---
     window.prevImage = () => { if(state.currentIndex > 0) { state.currentIndex--; loadAndPreviewImage(state.currentIndex); } }
     window.nextImage = () => { if(state.currentIndex < state.csvData.length - 1) { state.currentIndex++; loadAndPreviewImage(state.currentIndex); } }
 
@@ -223,7 +289,8 @@
         const item = state.csvData[index];
         if (!item) return;
         pageIndicator.innerText = `${index + 1} / ${state.csvData.length}`;
-        previewInfo.innerText = `当前原图: ${item.matchKey}`;
+        previewInfo.innerHTML = `文件名: <b>${item.matchKey}</b><br>标题: ${item.title}`;
+        
         const file = state.imageMap[item.matchKey];
         if (file) {
             const img = new Image();
@@ -232,13 +299,13 @@
         } else {
             state.currentImgObj = null;
             ctx.clearRect(0,0,canvas.width, canvas.height);
-            ctx.fillStyle = "#eee"; ctx.fillRect(0,0,1080,1440);
+            ctx.fillStyle = "#f5f5f5"; ctx.fillRect(0,0,1080,1440);
             ctx.fillStyle = "#999"; ctx.font = "40px sans-serif"; ctx.textAlign="center";
-            ctx.fillText("未找到图片", 540, 720);
-            previewInfo.innerText += " (❌ 文件缺失)";
+            ctx.fillText("❌ 未找到图片文件", 540, 720);
         }
     }
 
+    // --- 渲染 ---
     function renderCurrentFrame() {
         if (!state.currentImgObj) return;
         const item = state.csvData[state.currentIndex];
@@ -254,6 +321,8 @@
 
     function drawCoverToContext(ctx, img, title, subtitle, tag1, tag2, config) {
         ctx.clearRect(0, 0, 1080, 1440);
+        
+        // 1. 背景
         if (config.useDynamicBg) {
             ctx.save(); ctx.filter = 'blur(80px) brightness(0.8) saturate(1.2)';
             ctx.drawImage(img, -100, -100, 1280, 1640); ctx.restore();
@@ -263,12 +332,22 @@
         } else {
             ctx.fillStyle = "#f0f2f5"; ctx.fillRect(0,0,1080,1440);
         }
+
+        // 2. iPad 绘制
         const padW = 880; const padH = 660; const padX = (1080 - padW) / 2; const padY = 360;
+        
+        // 阴影
         ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 80; ctx.shadowOffsetY = 40;
         ctx.fillStyle = "#000"; roundRect(ctx, padX+20, padY+20, padW-40, padH-40, 40, true); ctx.restore();
+        
+        // 边框
         ctx.fillStyle = "#111"; roundRect(ctx, padX, padY, padW, padH, 20, true);
+        
+        // 屏幕遮罩
         const sx = padX + 12; const sy = padY + 12; const sw = padW - 24; const sh = padH - 24;
         ctx.save(); roundRect(ctx, sx, sy, sw, sh, 12, false); ctx.clip();
+
+        // 图片绘制 (拖拽 + 缩放)
         const iw = img.width; const ih = img.height;
         const r = Math.max(sw / iw, sh / ih); 
         const finalScale = r * config.scale;
@@ -276,6 +355,8 @@
         let dx = sx + (sw - nw) * 0.5 + config.panX;
         let dy = sy + (sh - nh) * 0.5 + config.panY;
         ctx.drawImage(img, dx, dy, nw, nh);
+
+        // 反光 & UI
         const gloss = ctx.createLinearGradient(sx, sy, sx + sw, sy + sh);
         gloss.addColorStop(0, "rgba(255,255,255,0.1)"); gloss.addColorStop(0.4, "rgba(255,255,255,0)");
         ctx.fillStyle = gloss; ctx.fillRect(sx, sy, sw, sh);
@@ -283,39 +364,51 @@
         ctx.fillStyle = "rgba(255,255,255,0.3)"; ctx.fillRect(sx+40, sy+sh-40, sw-80, 4);
         ctx.fillStyle = "#fff"; ctx.fillRect(sx+40, sy+sh-40, (sw-80)*0.45, 4);
         ctx.restore();
+
+        // 3. 放大镜
         if (config.showLens) {
             const lensR = 120; const lensX = padX + padW - 50; const lensY = padY + padH - 30;
             ctx.save(); ctx.beginPath(); ctx.arc(lensX, lensY, lensR, 0, Math.PI*2);
             ctx.lineWidth = 6; ctx.strokeStyle = "#fff"; ctx.shadowColor="rgba(0,0,0,0.3)"; ctx.shadowBlur=20;
             ctx.stroke(); ctx.clip();
-            let screenCX = sx + sw/2; let screenCY = sy + sh/2;
+            // 放大镜内容
             ctx.drawImage(img, dx - (nw*1.5) + lensX - sx, dy - (nh*1.5) + lensY - sy, nw*2.5, nh*2.5);
             ctx.restore();
             drawPill(ctx, lensX - 60, lensY + 95, "✨ 4K修复", "#000", "#fff");
         }
+
+        // 4. 文字
         ctx.textAlign = "center";
         const tagY = 220;
         if (tag1) drawBlurTag(ctx, tag1, 540 - 150, tagY);
         if (tag2) drawBlurTag(ctx, tag2, 540 + 150, tagY);
+
         ctx.textBaseline = "middle"; ctx.fillStyle = "#fff"; 
         ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 15; ctx.shadowOffsetY = 4;
         let fs = 85; if(title.length > 8) fs = 65; if(title.length > 12) fs = 55;
         ctx.font = `900 ${fs}px "PingFang SC", sans-serif`; ctx.fillText(title, 540, 115);
+
         ctx.shadowColor = "transparent"; ctx.textBaseline = "bottom";
         ctx.font = "600 32px sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.95)";
         ctx.beginPath(); ctx.moveTo(490, 1140); ctx.lineTo(590, 1140);
         ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth=2; ctx.stroke();
         ctx.fillText(subtitle, 540, 1120);
+        
         ctx.font = "400 22px sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.5)";
         ctx.fillText("@洋宝贝影视 · 独家整理", 540, 1380);
     }
 
+    // --- 批量生成 ---
     startBtn.addEventListener('click', async function() {
+        if (!state.csvData.length) return;
+        
         startBtn.disabled = true;
-        startBtn.innerHTML = "⏳ 正在批量生成...";
+        startBtn.innerHTML = "⏳ 正在批量生产中 (请勿关闭页面)...";
+        
         const zip = new JSZip();
-        const folder = zip.folder("V10_原名封面");
+        const folder = zip.folder("V11_国内加速版_封面");
         let success = 0;
+        
         const config = {
             scale: state.scale,
             panX: state.panX,
@@ -323,35 +416,43 @@
             useDynamicBg: document.getElementById('dynamicBg').checked,
             showLens: document.getElementById('showGlass').checked
         };
+        
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = 1080; tempCanvas.height = 1440;
         const tempCtx = tempCanvas.getContext('2d');
+
         for (let i = 0; i < state.csvData.length; i++) {
             const item = state.csvData[i];
             if (state.imageMap[item.matchKey]) {
                 try {
                     const finalTitle = cleanTitleText(item.title);
                     const img = await loadImage(state.imageMap[item.matchKey]);
+                    
                     drawCoverToContext(tempCtx, img, finalTitle, "沉浸式观影 | 4K修复", item.tag1, item.tag2, config);
+                    
                     const blob = await new Promise(r => tempCanvas.toBlob(r, 'image/png'));
                     
-                    // --- 核心改动：使用原始文件名 ---
-                    // 去除原后缀，强制改为 png
+                    // 使用原名，替换后缀为 png
                     let originalName = item.matchKey;
                     let downloadName = originalName.substring(0, originalName.lastIndexOf('.')) + ".png";
-                    if(!downloadName.endsWith(".png")) downloadName = originalName + ".png"; // 防止没后缀的情况
-                    
+                    if(originalName.indexOf('.') === -1) downloadName = originalName + ".png";
+
                     folder.file(downloadName, blob);
                     success++;
                 } catch(e) { console.error(e); }
             }
         }
+        
         if(success > 0) {
             zip.generateAsync({type:"blob"}).then(content => {
-                saveAs(content, "封面_V10原名版.zip");
-                startBtn.innerHTML = "✅ 下载完成"; startBtn.disabled = false;
+                saveAs(content, "批量封面_国内极速版.zip");
+                startBtn.innerHTML = "✅ 下载完成";
+                startBtn.disabled = false;
             });
-        } else { alert("生成失败"); startBtn.disabled = false; }
+        } else {
+            alert("生成失败，未匹配到任何图片");
+            startBtn.disabled = false;
+        }
     });
 
     function loadImage(file) {
