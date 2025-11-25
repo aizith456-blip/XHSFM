@@ -2,50 +2,57 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>小红书封面工厂 (V8.0 杂志美学版)</title>
+    <title>小红书封面工厂 (V9.0 终极氛围版)</title>
     <script src="https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        body { font-family: -apple-system, "Songti SC", "SimSun", serif; background: #f0f2f5; padding: 20px; color: #333; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.05); }
-        h1 { color: #333; margin-top: 0; font-weight: 800; letter-spacing: -1px; }
-        .highlight { color: #ff2442; }
+        body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #e0e5ec; padding: 20px; color: #333; }
+        .container { max-width: 950px; margin: 0 auto; background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        h1 { color: #222; margin-top: 0; font-weight: 900; letter-spacing: -0.5px; background: linear-gradient(45deg, #ff2442, #ff5e7e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        .step { margin-bottom: 25px; padding: 20px; background: #fafafa; border-radius: 12px; border: 1px solid #eee; }
+        .step { margin-bottom: 25px; padding: 25px; background: #f7f9fc; border-radius: 16px; border: 1px solid #edf2f7; transition: 0.3s; }
+        .step:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.03); transform: translateY(-2px); }
         
         #previewBox {
-            background: #fff; border: 1px solid #ddd; padding: 15px;
-            margin-top: 10px; border-radius: 8px; font-family: sans-serif; font-size: 13px;
-            color: #666;
+            background: #fff; border: 2px dashed #dde2e6; padding: 15px;
+            margin-top: 15px; border-radius: 8px; font-family: monospace; font-size: 13px; color: #666;
         }
 
         #logArea { 
-            background: #222; color: #fff; font-family: monospace; 
-            padding: 15px; height: 150px; overflow-y: auto; 
-            border-radius: 8px; font-size: 12px; margin-bottom: 20px;
+            background: #1a1b1e; color: #4ade80; font-family: monospace; 
+            padding: 20px; height: 160px; overflow-y: auto; 
+            border-radius: 12px; font-size: 12px; margin-bottom: 25px; border: 4px solid #f0f0f0;
         }
 
-        .btn { background: #ff2442; color: white; border: none; padding: 18px 40px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; transition: 0.3s; }
-        .btn:disabled { background: #e0e0e0; color:#999; cursor: not-allowed; }
-        .btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 36, 66, 0.2); }
+        .btn { background: linear-gradient(135deg, #ff2442 0%, #ff6b81 100%); color: white; border: none; padding: 18px 40px; border-radius: 14px; font-weight: 700; font-size: 18px; cursor: pointer; width: 100%; transition: 0.3s; box-shadow: 0 10px 25px rgba(255, 36, 66, 0.3); }
+        .btn:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(255, 36, 66, 0.4); }
         
         .encoding-select { padding: 8px; margin-left: 10px; border-radius: 6px; border: 1px solid #ccc; }
         
-        /* 选项开关 */
-        .option-row { display: flex; gap: 20px; margin-top: 10px; }
-        .checkbox-label { display: flex; align-items: center; gap: 5px; font-size: 14px; cursor: pointer; user-select: none;}
+        /* 控制条样式 */
+        .control-panel { display: flex; gap: 30px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+        .control-item { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: #555; }
+        
+        input[type="range"] {
+            -webkit-appearance: none; width: 150px; height: 6px; background: #e2e8f0; border-radius: 5px; outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #ff2442; cursor: pointer; box-shadow: 0 2px 6px rgba(255,36,66,0.4);
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>✨ 封面工厂 <span class="highlight">V8.0 杂志美学版</span></h1>
-    <p style="color:#666; margin-bottom:30px;">自动裁切掉两边的广告文字，打造纯净的电影感封面。</p>
+    <h1>🎨 封面工厂 V9.0 <span style="font-size:0.6em; color:#999; -webkit-text-fill-color:#999;">终极氛围版</span></h1>
+    <p style="color:#666; margin-bottom:30px;">专治“牛皮癣”广告，自动生成环境光背景，打造电影级质感。</p>
     
+    <!-- 步骤 1 -->
     <div class="step">
         <h3>1. 上传 CSV 表格 
             <select id="encodingOpt" class="encoding-select">
-                <option value="GBK" selected>GBK (推荐)</option>
+                <option value="GBK" selected>GBK</option>
                 <option value="UTF-8">UTF-8</option>
             </select>
         </h3>
@@ -53,25 +60,39 @@
         <div id="previewBox">等待上传...</div>
     </div>
 
+    <!-- 步骤 2 -->
     <div class="step">
         <h3>2. 选择图片文件夹</h3>
         <input type="file" id="imageFolder" webkitdirectory directory multiple onclick="this.value=null" style="display:block; width:100%; padding:10px;">
     </div>
     
+    <!-- 步骤 3 -->
     <div class="step">
-        <h3>3. 美化选项</h3>
-        <div class="option-row">
-            <label class="checkbox-label">
-                <input type="checkbox" id="cropMode" checked> ✂️ 自动裁切 (去黑边/去广告)
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="cleanText" checked> 🧹 自动清理标题乱码(??/SOS)
-            </label>
+        <h3>3. 美化控制台 (关键设置)</h3>
+        <div class="control-panel">
+            <div class="control-item">
+                🔍 暴力去广告缩放: 
+                <input type="range" id="zoomLevel" min="1.0" max="2.0" step="0.1" value="1.3">
+                <span id="zoomVal" style="color:#ff2442">1.3x</span>
+            </div>
+            
+            <div class="control-item">
+                <label style="cursor:pointer; display:flex; align-items:center; gap:5px;">
+                    <input type="checkbox" id="dynamicBg" checked> 🌈 开启环境光背景
+                </label>
+            </div>
+
+            <div class="control-item">
+                <label style="cursor:pointer; display:flex; align-items:center; gap:5px;">
+                    <input type="checkbox" id="showGlass" checked> 🔎 显示中心放大镜
+                </label>
+            </div>
         </div>
+        <p style="font-size:12px; color:#888; margin-top:10px;">* 如果广告条特别宽，请把缩放拉大到 1.5x 以上</p>
     </div>
 
     <div id="logArea">系统就绪。</div>
-    <button id="startBtn" class="btn" disabled>🎨 生成杂志风封面</button>
+    <button id="startBtn" class="btn" disabled>🎨 生成终极封面</button>
 </div>
 
 <canvas id="hiddenCanvas" width="1080" height="1440" style="display:none;"></canvas>
@@ -83,6 +104,8 @@
     const canvas = document.getElementById('hiddenCanvas');
     const ctx = canvas.getContext('2d');
     const encodingSelect = document.getElementById('encodingOpt');
+    const zoomSlider = document.getElementById('zoomLevel');
+    const zoomVal = document.getElementById('zoomVal');
 
     let csvData = [];
     let imageMap = {}; 
@@ -92,20 +115,21 @@
         logArea.scrollTop = logArea.scrollHeight;
     }
 
-    // 智能文件名清洗
+    // 缩放数值显示
+    zoomSlider.oninput = function() { zoomVal.innerText = this.value + "x"; }
+
     function cleanFileName(path) {
         if (!path) return "";
         let name = path.replace(/\\/g, '/').split('/').pop();
         return name.replace(/"/g, '').trim();
     }
 
-    // 标题清洗工具
     function cleanTitleText(text) {
-        if (!document.getElementById('cleanText').checked) return text;
-        // 去除 ??, SOS, 【】, 以及开头结尾的非中文符号
+        // 深度清洗标题
         let clean = text.replace(/\?\?/g, "")
                         .replace(/SOS/ig, "")
                         .replace(/【.*?】/g, "")
+                        .replace(/（.*?）/g, "") // 去除中文括号内容
                         .replace(/[^\u4e00-\u9fa5a-zA-Z0-9]$/, ""); 
         return clean.trim();
     }
@@ -115,14 +139,14 @@
         previewBox.innerHTML = "🔄 编码已切换，请重新上传文件...";
     });
 
-    // 1. CSV 处理
+    // 1. CSV
     document.getElementById('csvFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(evt) {
             const text = evt.target.result;
-            if (text.substring(0, 10).includes("PK")) { alert("请上传CSV格式！"); return; }
+            if (text.substring(0, 10).includes("PK")) { alert("请上传CSV！"); return; }
             
             const lines = text.split('\n').filter(line => line.trim() !== "");
             let previewText = "📋 预览:\n";
@@ -147,7 +171,7 @@
         reader.readAsText(file, encodingSelect.value);
     });
 
-    // 2. 文件夹处理
+    // 2. Folder
     document.getElementById('imageFolder').addEventListener('change', function(e) {
         const files = e.target.files;
         imageMap = {};
@@ -168,23 +192,27 @@
         }
     }
 
-    // 3. 开始生成
+    // 3. Generate
     startBtn.addEventListener('click', async function() {
         startBtn.disabled = true;
-        startBtn.innerHTML = "⏳ 正在进行杂志排版...";
+        startBtn.innerHTML = "⏳ 正在渲染光影...";
         const zip = new JSZip();
-        const folder = zip.folder("小红书杂志风封面");
+        const folder = zip.folder("V9_氛围感封面");
         let success = 0;
-        const isCrop = document.getElementById('cropMode').checked;
+        
+        // 获取用户设置
+        const config = {
+            scale: parseFloat(zoomSlider.value),
+            useDynamicBg: document.getElementById('dynamicBg').checked,
+            showLens: document.getElementById('showGlass').checked
+        };
 
         for (let i = 0; i < csvData.length; i++) {
             const item = csvData[i];
             if (imageMap[item.matchKey]) {
                 try {
-                    // 标题自动清洗
                     const finalTitle = cleanTitleText(item.title);
-                    
-                    const blob = await renderMagazineCover(imageMap[item.matchKey], finalTitle, "沉浸式观影 | 4K修复", item.tag1, item.tag2, isCrop);
+                    const blob = await renderUltimateCover(imageMap[item.matchKey], finalTitle, "沉浸式观影 | 4K修复", item.tag1, item.tag2, config);
                     let safeTitle = (finalTitle || "img_"+i).replace(/[\\/:*?"<>|]/g, "_");
                     folder.file(`${safeTitle}.png`, blob);
                     success++;
@@ -194,135 +222,158 @@
         
         if(success > 0) {
             zip.generateAsync({type:"blob"}).then(content => {
-                saveAs(content, "杂志风封面_V8.zip");
+                saveAs(content, "封面_V9终极版.zip");
                 startBtn.innerHTML = "✅ 下载完成";
                 startBtn.disabled = false;
             });
         } else {
-            alert("生成失败，请检查文件名匹配");
+            alert("失败");
             startBtn.disabled = false;
         }
     });
 
-    // --- 🎨 V8.0 核心引擎：杂志美学风 ---
-    function renderMagazineCover(file, title, subtitle, tag1, tag2, isCrop) {
+    // --- 🎨 V9.0 核心引擎：终极氛围版 ---
+    function renderUltimateCover(file, title, subtitle, tag1, tag2, config) {
         return new Promise(resolve => {
             const img = new Image();
             img.onload = () => {
-                // 清布
                 ctx.clearRect(0, 0, 1080, 1440);
 
-                // 1. 背景：柔和的高级灰渐变
-                const grad = ctx.createLinearGradient(0, 0, 0, 1440);
-                grad.addColorStop(0, "#eef1f5");
-                grad.addColorStop(1, "#dce4eb");
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, 1080, 1440);
-
-                // 2. 绘制 iPad 样机 (稍微缩小一点，留白更有呼吸感)
-                const padW = 860; 
-                const padH = 645; // 4:3
-                const padX = (1080 - padW) / 2;
-                const padY = 380; // 下移，给标题留更多空间
-
-                // 阴影 (柔和弥散光)
-                ctx.save();
-                ctx.shadowColor = "rgba(0,0,0,0.15)";
-                ctx.shadowBlur = 60;
-                ctx.shadowOffsetY = 30;
-                ctx.fillStyle = "#fff";
-                roundRect(ctx, padX, padY, padW, padH, 20, true);
-                ctx.restore();
-
-                // 屏幕黑边
-                ctx.fillStyle = "#111";
-                roundRect(ctx, padX+8, padY+8, padW-16, padH-16, 16, true);
-
-                // 屏幕显示区域
-                const sx = padX + 24;
-                const sy = padY + 24;
-                const sw = padW - 48;
-                const sh = padH - 48;
-
-                ctx.save();
-                roundRect(ctx, sx, sy, sw, sh, 8, false);
-                ctx.clip();
-
-                if (isCrop) {
-                    // 🔥 核心：裁切模式 (Object-Fit: Cover)
-                    // 这样会自动切掉左右两边的文字，只保留中间画面！
-                    drawImageCover(ctx, img, sx, sy, sw, sh);
+                // 1. 背景层：动态环境光 vs 高级灰
+                if (config.useDynamicBg) {
+                    // 绘制全图并极度模糊，提取氛围色
+                    ctx.save();
+                    ctx.filter = 'blur(80px) brightness(0.8) saturate(1.2)';
+                    // 稍微放大一点去除白边
+                    ctx.drawImage(img, -100, -100, 1280, 1640); 
+                    ctx.restore();
+                    
+                    // 叠加一层白色渐变，保证文字清晰度
+                    const grad = ctx.createLinearGradient(0, 0, 0, 1440);
+                    grad.addColorStop(0, "rgba(255,255,255,0.2)");
+                    grad.addColorStop(1, "rgba(0,0,0,0.4)");
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0,0,1080,1440);
                 } else {
-                    // 完整模式 (Fit)
-                    ctx.fillStyle="#000"; ctx.fillRect(sx,sy,sw,sh);
-                    drawImageProp(ctx, img, sx, sy, sw, sh);
+                    ctx.fillStyle = "#f0f2f5";
+                    ctx.fillRect(0,0,1080,1440);
                 }
 
-                // 视频进度条装饰 (增加细节)
-                ctx.fillStyle = "rgba(0,0,0,0.4)";
-                ctx.fillRect(sx, sy + sh - 60, sw, 60);
-                ctx.fillStyle = "rgba(255,255,255,0.3)";
-                ctx.fillRect(sx + 30, sy + sh - 30, sw - 60, 4);
-                ctx.fillStyle = "#ff2442";
-                ctx.fillRect(sx + 30, sy + sh - 30, sw * 0.4, 4); // 40%进度
+                // 2. iPad 悬浮容器
+                const padW = 880; 
+                const padH = 660; // 4:3
+                const padX = (1080 - padW) / 2;
+                const padY = 360;
 
+                // 2.1 弥散阴影 (更柔和)
+                ctx.save();
+                ctx.shadowColor = "rgba(0,0,0,0.4)";
+                ctx.shadowBlur = 80;
+                ctx.shadowOffsetY = 40;
+                ctx.fillStyle = "#000";
+                roundRect(ctx, padX + 20, padY + 20, padW - 40, padH - 40, 40, true);
                 ctx.restore();
 
-                // 3. 放大镜 (放在iPad边框上，作为点缀)
-                // 智能判断：如果裁切了，细节更清晰，不用放太大
-                const lensR = 110;
-                const lensX = padX + padW - 60;
-                const lensY = padY + padH - 40;
+                // 2.2 机身边框 (极窄黑边)
+                ctx.fillStyle = "#111";
+                roundRect(ctx, padX, padY, padW, padH, 20, true);
+
+                // 2.3 屏幕区域
+                const sx = padX + 12;
+                const sy = padY + 12;
+                const sw = padW - 24;
+                const sh = padH - 24;
 
                 ctx.save();
-                ctx.beginPath();
-                ctx.arc(lensX, lensY, lensR, 0, Math.PI*2);
-                ctx.shadowColor = "rgba(0,0,0,0.2)"; ctx.shadowBlur = 20;
-                ctx.strokeStyle = "#fff"; ctx.lineWidth = 8;
-                ctx.stroke(); ctx.clip();
+                roundRect(ctx, sx, sy, sw, sh, 12, false);
+                ctx.clip();
 
-                // 放大中间部分
-                const centerInfo = getDrawImagePropInfo(img, sx, sy, sw, sh);
-                const zoomScale = 2.0;
-                ctx.drawImage(img, centerInfo.cx - (lensR/zoomScale), centerInfo.cy - (lensR/zoomScale), lensR*2/zoomScale, lensR*2/zoomScale, lensX-lensR, lensY-lensR, lensR*2, lensR*2);
-                ctx.restore();
+                // 🔥 核心：去广告强力缩放
+                // 默认 1.3 倍，用户可拉到 2.0 倍
+                drawImageZoom(ctx, img, sx, sy, sw, sh, config.scale);
+
+                // 2.4 屏幕反光 (提升质感)
+                const gloss = ctx.createLinearGradient(sx, sy, sx + sw, sy + sh);
+                gloss.addColorStop(0, "rgba(255,255,255,0.1)");
+                gloss.addColorStop(0.4, "rgba(255,255,255,0)");
+                gloss.addColorStop(1, "rgba(255,255,255,0)");
+                ctx.fillStyle = gloss;
+                ctx.fillRect(sx, sy, sw, sh);
+
+                // 2.5 视频进度条 (白色极简)
+                ctx.fillStyle = "rgba(0,0,0,0.3)";
+                ctx.fillRect(sx, sy + sh - 80, sw, 80); // 底部渐变遮罩
                 
-                // 放大镜Tag
-                drawPill(ctx, lensX - 50, lensY + 80, "✨ 超清", "#333", "#fff");
+                ctx.fillStyle = "rgba(255,255,255,0.3)";
+                ctx.fillRect(sx + 40, sy + sh - 40, sw - 80, 4);
+                ctx.fillStyle = "#fff"; // 纯白进度条更高级
+                ctx.fillRect(sx + 40, sy + sh - 40, (sw-80) * 0.45, 4);
+                
+                ctx.restore();
 
-                // 4. 文字排版 (杂志风)
+                // 3. 放大镜 (强制居中)
+                if (config.showLens) {
+                    const lensR = 120;
+                    // 放在右下角稍微偏上的位置
+                    const lensX = padX + padW - 50; 
+                    const lensY = padY + padH - 30;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(lensX, lensY, lensR, 0, Math.PI*2);
+                    // 金色/白色边框，增加贵气
+                    ctx.lineWidth = 6; 
+                    ctx.strokeStyle = "#fff"; 
+                    ctx.shadowColor="rgba(0,0,0,0.3)"; ctx.shadowBlur=20;
+                    ctx.stroke(); ctx.clip();
+
+                    // 放大哪里？放大【画面正中心】！
+                    // 不要放大右下角，因为那里通常是字幕或者水印
+                    // 计算原图在缩放后的中心点
+                    drawImageZoom(ctx, img, lensX-lensR*2, lensY-lensR*2, lensR*4, lensR*4, config.scale * 2.5); // 放大2.5倍
+                    
+                    ctx.restore();
+                    
+                    // 标签
+                    drawPill(ctx, lensX - 60, lensY + 95, "✨ 4K修复", "#000", "#fff");
+                }
+
+                // 4. 文字排版
                 ctx.textAlign = "center";
                 
-                // 标签 (胶囊风格)
-                const tagY = 180;
-                if (tag1) drawCapsule(ctx, tag1, 540 - 140, tagY, "#333", "#fff");
-                if (tag2) drawCapsule(ctx, tag2, 540 + 140, tagY, "#ff2442", "#fff");
+                // 顶部标签 (毛玻璃效果)
+                const tagY = 220;
+                if (tag1) drawBlurTag(ctx, tag1, 540 - 150, tagY);
+                if (tag2) drawBlurTag(ctx, tag2, 540 + 150, tagY);
 
-                // 主标题 (衬线体，更有电影感)
+                // 主标题 (带发光投影)
                 ctx.textBaseline = "middle";
-                ctx.fillStyle = "#222"; 
-                // 自动缩小字号防止换行
-                let fontSize = 90;
-                if(title.length > 8) fontSize = 70;
-                if(title.length > 12) fontSize = 60;
+                ctx.fillStyle = "#fff"; 
+                ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 15; ctx.shadowOffsetY = 4;
                 
-                ctx.font = `bold ${fontSize}px "Songti SC", "SimSun", serif`; 
-                // 增加一点字间距
-                ctx.fillText(title, 540, 300);
+                let fontSize = 85;
+                if(title.length > 8) fontSize = 65;
+                if(title.length > 12) fontSize = 55;
+                ctx.font = `900 ${fontSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+                ctx.fillText(title, 540, 115);
 
-                // 底部副标题
+                // 底部信息
+                ctx.shadowColor = "transparent";
                 ctx.textBaseline = "bottom";
-                ctx.font = "500 32px sans-serif";
-                ctx.fillStyle = "#888";
-                ctx.fillText(subtitle, 540, 1150);
+                ctx.font = "600 32px sans-serif";
+                ctx.fillStyle = "rgba(255,255,255,0.95)";
                 
-                // 底部装饰线
+                // 简单的装饰线条
                 ctx.beginPath();
-                ctx.moveTo(540 - 50, 1180);
-                ctx.lineTo(540 + 50, 1180);
-                ctx.strokeStyle = "#ddd";
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                ctx.moveTo(490, 1140); ctx.lineTo(590, 1140);
+                ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth=2; ctx.stroke();
+                
+                ctx.fillText(subtitle, 540, 1120);
+                
+                // 底部水印
+                ctx.font = "400 22px sans-serif";
+                ctx.fillStyle = "rgba(255,255,255,0.5)";
+                ctx.fillText("@洋宝贝影视 · 独家整理", 540, 1380);
 
                 canvas.toBlob(blob => resolve(blob), 'image/png');
             };
@@ -330,14 +381,23 @@
         });
     }
 
-    // --- 辅助绘图函数 ---
+    // --- 辅助函数 ---
     
-    // 填充裁切 (Cover)
-    function drawImageCover(ctx, img, x, y, w, h) {
+    // 带缩放的裁切绘制
+    function drawImageZoom(ctx, img, x, y, w, h, scale) {
         var iw = img.width, ih = img.height;
-        var r = Math.max(w / iw, h / ih); // 取最大比例，保证填满
-        var nw = iw * r, nh = ih * r;
-        var cx = (w - nw) * 0.5, cy = (h - nh) * 0.5; // 居中
+        // 基础 Cover 比例
+        var r = Math.max(w / iw, h / ih); 
+        // 叠加用户自定义缩放 (scale)
+        var finalScale = r * scale;
+        
+        var nw = iw * finalScale;
+        var nh = ih * finalScale;
+        
+        // 始终居中
+        var cx = (w - nw) * 0.5;
+        var cy = (h - nh) * 0.5;
+        
         ctx.drawImage(img, x + cx, y + cy, nw, nh); 
     }
 
@@ -346,35 +406,36 @@
         if(fill) ctx.fill(); else ctx.stroke();
     }
 
-    function drawCapsule(ctx, text, x, y, bg, color) {
+    function drawBlurTag(ctx, text, x, y) {
         ctx.save();
         ctx.font = "bold 26px sans-serif";
         const w = ctx.measureText(text).width + 50;
-        const h = 50;
-        ctx.fillStyle = bg;
-        ctx.shadowColor = "rgba(0,0,0,0.1)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 5;
-        ctx.beginPath(); ctx.roundRect(x - w/2, y, w, h, 25); ctx.fill();
-        ctx.fillStyle = color; ctx.shadowBlur=0;
+        const h = 54;
+        
+        // 黑色半透明背景
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.shadowColor = "rgba(0,0,0,0.2)"; ctx.shadowBlur = 10;
+        ctx.beginPath(); ctx.roundRect(x - w/2, y, w, h, 27); ctx.fill();
+        
+        // 描边
+        ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 1; ctx.stroke();
+
+        ctx.fillStyle = "#fff"; ctx.shadowBlur = 0;
         ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(text, x, y + h/2 + 2);
         ctx.restore();
     }
 
     function drawPill(ctx, x, y, text, bg, color) {
-        drawCapsule(ctx, text, x + 30, y, bg, color); // 复用逻辑
-    }
-
-    function drawImageProp(ctx, img, x, y, w, h) {
-        const i = getDrawImagePropInfo(img, x, y, w, h);
-        ctx.drawImage(img, i.sx, i.sy, i.sw, i.sh, i.x, i.y, i.w, i.h);
-    }
-    function getDrawImagePropInfo(img, x, y, w, h) {
-        var iw=img.width, ih=img.height, r=Math.min(w/iw, h/ih), nw=iw*r, nh=ih*r, ar=1;
-        if(nw<w) ar=w/nw; if(Math.abs(ar-1)<1e-14 && nh<h) ar=h/nh;
-        nw*=ar; nh*=ar;
-        var cw=iw/(nw/w), ch=ih/(nh/h), cx=(iw-cw)*0.5, cy=(ih-ch)*0.5;
-        if(cx<0) cx=0; if(cy<0) cy=0; if(cw>iw) cw=iw; if(ch>ih) ch=ih;
-        return {sx:cx, sy:cy, sw:cw, sh:ch, x:x, y:y, w:nw, h:nh, cx:cx, cy:cy};
+        ctx.save();
+        ctx.font = "bold 24px sans-serif";
+        const w = ctx.measureText(text).width + 30;
+        ctx.fillStyle = bg;
+        ctx.beginPath(); ctx.roundRect(x, y, w, 44, 22); ctx.fill();
+        ctx.fillStyle = color;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(text, x + w/2, y + 24);
+        ctx.restore();
     }
 </script>
 </body>
