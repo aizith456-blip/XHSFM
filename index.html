@@ -2,47 +2,48 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>小红书封面工厂 (V6.0 智能匹配版)</title>
+    <title>小红书封面工厂 (V7.0 iPad样机版)</title>
     <script src="https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f5f5f7; padding: 20px; color: #333; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        h1 { color: #ff2442; margin-top: 0; }
-        .step { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px dashed #eee; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #eef1f5; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        h1 { color: #ff2442; margin-top: 0; display: flex; align-items: center; gap: 10px; }
+        .step { margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 1px solid #eee; }
         
         #previewBox {
-            background: #fffbe6; border: 1px solid #ffe58f; padding: 15px;
-            margin-top: 10px; border-radius: 6px; font-family: monospace; font-size: 13px;
-            white-space: pre-wrap; color: #333;
+            background: #fff; border: 2px dashed #ddd; padding: 15px;
+            margin-top: 10px; border-radius: 8px; font-family: monospace; font-size: 13px;
+            white-space: pre-wrap; color: #555;
         }
 
         #logArea { 
-            background: #222; color: #0f0; font-family: monospace; 
-            padding: 15px; height: 250px; overflow-y: auto; 
-            border-radius: 8px; font-size: 12px; margin-bottom: 20px; 
-            line-height: 1.5;
+            background: #1a1a1a; color: #00ff9d; font-family: "Consolas", monospace; 
+            padding: 15px; height: 200px; overflow-y: auto; 
+            border-radius: 8px; font-size: 12px; margin-bottom: 20px; line-height: 1.6;
         }
 
-        .btn { background: #ff2442; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; }
-        .btn:disabled { background: #ccc; cursor: not-allowed; }
-        .encoding-select { padding: 5px; margin-left: 10px; }
+        .btn { background: #ff2442; color: white; border: none; padding: 16px 40px; border-radius: 50px; font-weight: 800; font-size: 18px; cursor: pointer; width: 100%; transition: 0.2s; box-shadow: 0 4px 15px rgba(255, 36, 66, 0.3); }
+        .btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 36, 66, 0.4); }
+        .encoding-select { padding: 5px; margin-left: 10px; border-radius: 4px; border: 1px solid #ccc;}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🏭 批量封面工厂 (V6.0 智能匹配版)</h1>
+    <h1>🍎 封面工厂 V7.0 (iPad样机版)</h1>
+    <p style="color:#666; margin-bottom:20px;">专为“带字原图”优化，模拟真实iPad观看视角，提升高级感。</p>
     
     <div class="step">
         <h3>1. 上传 CSV 表格 
             <select id="encodingOpt" class="encoding-select">
-                <option value="GBK" selected>编码：GBK (推荐)</option>
+                <option value="GBK" selected>编码：GBK (默认)</option>
                 <option value="UTF-8">编码：UTF-8</option>
             </select>
         </h3>
         <input type="file" id="csvFile" accept=".csv" onclick="this.value=null" style="display:block; width:100%; padding:10px;">
-        <div id="previewBox">预览区：请上传表格，确认汉字正常...</div>
+        <div id="previewBox">等待上传...</div>
     </div>
 
     <div class="step">
@@ -50,8 +51,8 @@
         <input type="file" id="imageFolder" webkitdirectory directory multiple onclick="this.value=null" style="display:block; width:100%; padding:10px;">
     </div>
 
-    <div id="logArea">系统就绪。</div>
-    <button id="startBtn" class="btn" disabled>🚀 开始智能匹配生成</button>
+    <div id="logArea">系统就绪，等待指令。</div>
+    <button id="startBtn" class="btn" disabled>🚀 生成 iPad 风格封面</button>
 </div>
 
 <canvas id="hiddenCanvas" width="1080" height="1440" style="display:none;"></canvas>
@@ -67,60 +68,39 @@
     let csvData = [];
     let imageMap = {}; 
 
-    function log(msg, type = 'info') {
-        const color = type === 'error' ? '#ff4d4f' : (type === 'warn' ? '#faad14' : '#0f0');
-        logArea.innerHTML += `<div style="color:${color}; border-bottom:1px solid #333; padding:2px;">${msg}</div>`;
+    function log(msg) {
+        logArea.innerHTML += `<div>> ${msg}</div>`;
         logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    function cleanFileName(path) {
+        if (!path) return "";
+        let name = path.replace(/\\/g, '/').split('/').pop();
+        return name.replace(/"/g, '').trim();
     }
 
     encodingSelect.addEventListener('change', () => {
         csvData = [];
         previewBox.innerHTML = "🔄 编码已切换，请重新上传文件...";
-        log("编码切换，请重新上传文件。");
     });
 
-    // --- 智能清洗函数 (核心) ---
-    // 这个函数会把 "D:\xx\ 123.jpg " 变成 "123.jpg"
-    function cleanFileName(path) {
-        if (!path) return "";
-        // 1. 统一斜杠，取最后一部分
-        let name = path.replace(/\\/g, '/').split('/').pop();
-        // 2. 去除引号、去除首尾空格
-        name = name.replace(/"/g, '').trim();
-        // 3. (可选) 转小写，实现忽略大小写匹配
-        return name.toLowerCase();
-    }
-
-    // --- 1. CSV 处理 ---
+    // 1. CSV
     document.getElementById('csvFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
-
-        const encoding = encodingSelect.value;
         const reader = new FileReader();
-        
         reader.onload = function(evt) {
             const text = evt.target.result;
-            // Excel二进制检查
-            if (text.substring(0, 10).includes("PK")) {
-                alert("这是Excel文件(.xlsx)！请另存为CSV！");
-                return;
-            }
-
+            if (text.substring(0, 10).includes("PK")) { alert("是Excel文件！请另存为CSV！"); return; }
             const lines = text.split('\n').filter(line => line.trim() !== "");
-            
-            // 预览前几行
-            let previewText = "📋 文件内容预览:\n";
-            for(let i=0; i<Math.min(3, lines.length); i++) previewText += `[${i+1}] ${lines[i].substring(0, 60)}\n`;
+            let previewText = "📋 预览:\n";
+            for(let i=0; i<Math.min(3, lines.length); i++) previewText += `[${i+1}] ${lines[i].substring(0, 50)}\n`;
             previewBox.innerText = previewText;
-
             csvData = [];
             lines.forEach(row => {
                 let cols = row.split(',');
                 if (cols.length >= 2) {
                     csvData.push({
-                        rawPath: cols[0], // 保留原始路径用于调试
-                        // 提取纯净文件名用于匹配
                         matchKey: cleanFileName(cols[0]), 
                         title: (cols[1] || "").replace(/"/g, '').trim(),
                         tag1: (cols[2] || "").replace(/"/g, '').trim(),
@@ -128,115 +108,258 @@
                     });
                 }
             });
-
-            log(`✅ CSV加载成功：${csvData.length} 行数据。`);
-            log(`🔍 测试第一行匹配键: [${csvData[0].matchKey}]`); // 调试用
+            log(`✅ 表格加载：${csvData.length} 条`);
             checkReady();
         };
-        reader.readAsText(file, encoding);
+        reader.readAsText(file, encodingSelect.value);
     });
 
-    // --- 2. 文件夹处理 ---
+    // 2. Folder
     document.getElementById('imageFolder').addEventListener('change', function(e) {
         const files = e.target.files;
         imageMap = {};
         let count = 0;
-        let exampleKey = "";
-
         for (let i = 0; i < files.length; i++) {
             if (files[i].type.startsWith('image/')) {
-                // 同样进行智能清洗
-                const key = cleanFileName(files[i].name);
-                imageMap[key] = files[i];
-                if(count === 0) exampleKey = key;
+                imageMap[cleanFileName(files[i].name)] = files[i];
                 count++;
             }
         }
-        log(`📂 图片文件夹索引完成: ${count} 张`);
-        log(`🔍 测试第一张图片键: [${exampleKey}]`); // 调试用
+        log(`📂 图片加载：${count} 张`);
         checkReady();
     });
 
     function checkReady() {
         if (csvData.length > 0 && Object.keys(imageMap).length > 0) {
             startBtn.disabled = false;
-            startBtn.innerHTML = `🚀 开始匹配生成 (${csvData.length} 任务)`;
         }
     }
 
-    // --- 3. 生成逻辑 ---
+    // 3. Generate
     startBtn.addEventListener('click', async function() {
-        if (typeof JSZip === 'undefined') { alert("请刷新页面加载组件"); return; }
-        
         startBtn.disabled = true;
-        startBtn.innerHTML = "⏳ 正在匹配中...";
+        startBtn.innerHTML = "⏳ 正在精心设计中...";
         const zip = new JSZip();
-        const folder = zip.folder("小红书批量封面");
+        const folder = zip.folder("iPad风格封面");
         let success = 0;
-        let errors = [];
-
-        log("--- 开始智能匹配 ---");
 
         for (let i = 0; i < csvData.length; i++) {
             const item = csvData[i];
-            
-            // 尝试在图片库里找这个清洗后的键
             if (imageMap[item.matchKey]) {
                 try {
-                    const blob = await renderCover(imageMap[item.matchKey], item.title, "网盘直发 | 4K修复", item.tag1, item.tag2);
+                    const blob = await renderiPadCover(imageMap[item.matchKey], item.title, "沉浸式观影 | 4K修复", item.tag1, item.tag2);
                     let safeTitle = (item.title || "img_"+i).replace(/[\\/:*?"<>|]/g, "_");
                     folder.file(`${safeTitle}.png`, blob);
                     success++;
                 } catch(e) { console.error(e); }
-            } else {
-                // 记录前5个错误用于诊断
-                if (errors.length < 5) {
-                    errors.push(`CSV想要: [${item.matchKey}] (原: ${item.rawPath})`);
-                }
             }
         }
-
-        if (success > 0) {
-            log(`🎉 成功匹配并生成 ${success} 张！`);
+        
+        if(success > 0) {
             zip.generateAsync({type:"blob"}).then(content => {
-                saveAs(content, "智能匹配结果.zip");
+                saveAs(content, "iPad封面_V7.zip");
                 startBtn.innerHTML = "✅ 下载完成";
                 startBtn.disabled = false;
             });
         } else {
-            log("❌ 0 张成功。以下是匹配失败诊断：", 'error');
-            errors.forEach(e => log(e, 'warn'));
-            log("💡 提示：请对比上方括号里的文件名，看看和你的图片名差在哪里？", 'warn');
-            alert("匹配失败！请查看下方黑色日志区的【诊断信息】。");
+            alert("生成失败，请检查文件名匹配");
             startBtn.disabled = false;
-            startBtn.innerHTML = "❌ 失败，查看日志";
         }
     });
 
-    // --- 绘图 (不变) ---
-    function renderCover(f,t,s,t1,t2){return new Promise((r)=>{const d=new FileReader();d.onload=(e)=>{const i=new Image();i.onload=()=>{draw(i,t,s,t1,t2);canvas.toBlob(r,'image/png')};i.src=e.target.result};d.readAsDataURL(f)})}
-    function draw(img,title,sub,t1,t2){
-        ctx.clearRect(0,0,1080,1440);
-        ctx.save(); ctx.filter='blur(35px) brightness(0.65) saturate(1.2)'; drawImageProp(ctx,img,0,0,1080,1440); ctx.restore();
-        const px=90,py=380,pw=900,ph=650;
-        ctx.shadowColor="rgba(0,0,0,0.5)"; ctx.shadowBlur=40; ctx.shadowOffsetY=30; ctx.fillStyle="#111"; roundRect(ctx,px,py,pw,ph,24,true);
-        ctx.shadowColor="transparent";
-        ctx.save(); roundRect(ctx,px+18,py+18,pw-36,ph-36,8,false); ctx.clip(); drawImageProp(ctx,img,px+18,py+18,pw-36,ph-36); ctx.restore();
-        const lx=540,ly=600; ctx.save(); ctx.beginPath(); ctx.arc(lx,ly,130,0,Math.PI*2); ctx.shadowColor="rgba(0,0,0,0.4)"; ctx.shadowBlur=20; ctx.lineWidth=8; ctx.strokeStyle="#fff"; ctx.stroke(); ctx.clip();
-        const info=getDrawImagePropInfo(img,px+18,py+18,pw-36,ph-36); const zx=lx-((lx-info.x)/info.w)*info.w*2, zy=ly-((ly-info.y)/info.h)*info.h*2;
-        ctx.filter='contrast(1.3) saturate(1.3) brightness(1.1)'; ctx.drawImage(img,info.sx,info.sy,info.sw,info.sh,zx,zy,info.w*2,info.h*2); ctx.restore();
-        drawBadge(ctx,lx+90,ly+100,"🔍 细节爆炸","#ffcc00","#000");
-        if(t1) drawTag(ctx,t1,px,py-35); if(t2) drawTag(ctx,t2,px+pw-200,py+ph-25);
-        ctx.textAlign="center"; ctx.shadowColor="rgba(0,0,0,0.5)"; ctx.shadowBlur=15; ctx.shadowOffsetY=5;
-        let fs=85; if(title.length>8) fs=65; if(title.length>12) fs=55;
-        ctx.font=`bold ${fs}px -apple-system,sans-serif`; ctx.fillStyle="#fff"; ctx.fillText(title,540,250);
-        ctx.font="500 32px sans-serif"; ctx.fillStyle="rgba(255,255,255,0.9)"; ctx.shadowBlur=0; ctx.fillText(sub,540,1150);
+    // --- 🎨 V7.0 核心绘图引擎：iPad 风格 ---
+    function renderiPadCover(file, title, subtitle, tag1, tag2) {
+        return new Promise(resolve => {
+            const img = new Image();
+            img.onload = () => {
+                // 清空画布
+                ctx.clearRect(0, 0, 1080, 1440);
+
+                // 1. 背景层：高斯模糊 + 压暗
+                ctx.save();
+                ctx.filter = 'blur(40px) brightness(0.6)';
+                ctx.drawImage(img, 0, 0, 1080, 1440);
+                // 加一层深色蒙版，让文字更清晰
+                ctx.fillStyle = "rgba(0,0,0,0.3)";
+                ctx.fillRect(0, 0, 1080, 1440);
+                ctx.restore();
+
+                // 2. 绘制 iPad Pro 机身
+                const padW = 920;
+                const padH = 690; // 4:3比例
+                const padX = (1080 - padW) / 2;
+                const padY = 320; // 屏幕位置
+
+                // 机身阴影 (悬浮感)
+                ctx.save();
+                ctx.shadowColor = "rgba(0,0,0,0.6)";
+                ctx.shadowBlur = 50;
+                ctx.shadowOffsetY = 40;
+                
+                // 机身外壳 (深空灰)
+                ctx.fillStyle = "#2c2c2c";
+                roundRect(ctx, padX, padY, padW, padH, 24, true);
+                ctx.restore();
+
+                // 屏幕黑边 (Bezel)
+                ctx.fillStyle = "#000";
+                roundRect(ctx, padX + 5, padY + 5, padW - 10, padH - 10, 20, true);
+
+                // 3. 屏幕内容 (裁切圆角)
+                const screenMargin = 20;
+                const sx = padX + screenMargin;
+                const sy = padY + screenMargin;
+                const sw = padW - screenMargin * 2;
+                const sh = padH - screenMargin * 2;
+
+                ctx.save();
+                roundRect(ctx, sx, sy, sw, sh, 12, false); // 路径
+                ctx.clip(); // 裁切
+                
+                // 绘制原本的图片（保持比例填满屏幕）
+                drawImageProp(ctx, img, sx, sy, sw, sh);
+                
+                // 视频进度条 (增加氛围感)
+                ctx.fillStyle = "rgba(0,0,0,0.4)"; // 底部暗条
+                ctx.fillRect(sx, sy + sh - 80, sw, 80); // 底部渐变
+                
+                // 进度条槽
+                ctx.fillStyle = "rgba(255,255,255,0.3)";
+                ctx.fillRect(sx + 30, sy + sh - 40, sw - 60, 4);
+                // 进度条进度 (随机 30%-80%)
+                const progress = (Math.random() * 0.5 + 0.3) * (sw - 60);
+                ctx.fillStyle = "#ff2442"; // 小红书红
+                ctx.fillRect(sx + 30, sy + sh - 40, progress, 4);
+                // 进度点
+                ctx.beginPath();
+                ctx.arc(sx + 30 + progress, sy + sh - 38, 8, 0, Math.PI*2);
+                ctx.fillStyle = "#fff";
+                ctx.fill();
+
+                ctx.restore();
+
+                // 4. 放大镜 (放在右下角，避免遮挡人脸)
+                const lensX = padX + padW - 100;
+                const lensY = padY + padH + 20; //稍微出框一点点
+                const lensR = 140;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(lensX, lensY, lensR, 0, Math.PI*2);
+                ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 20;
+                ctx.lineWidth = 10; ctx.strokeStyle = "#fff";
+                ctx.stroke(); 
+                ctx.clip();
+                
+                // 放大逻辑
+                const info = getDrawImagePropInfo(img, sx, sy, sw, sh);
+                // 这里我们固定放大画面中心稍微偏右的位置，通常是人物或文字
+                const zoomFactor = 2.5;
+                ctx.filter = 'contrast(1.2) saturate(1.2)';
+                ctx.drawImage(img, info.cx - info.sw/4, info.cy - info.sh/4, info.sw/2, info.sh/2, lensX - lensR, lensY - lensR, lensR*2, lensR*2);
+                ctx.restore();
+                
+                // 放大镜标签
+                drawPill(ctx, lensX - 60, lensY + 90, "⚡️ 画质炸裂", "#ff2442", "#fff");
+
+
+                // 5. 文字排版 (极简高级风)
+                ctx.textAlign = "center";
+                ctx.textBaseline = "top";
+
+                // 主标题 (顶部)
+                ctx.font = "bold 80px 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif"; // 强制支持Emoji
+                ctx.fillStyle = "#fff";
+                ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 20; ctx.shadowOffsetY = 5;
+                
+                // 处理过长标题
+                let displayTitle = title;
+                if (displayTitle.length > 10) displayTitle = displayTitle.substring(0, 10) + "...";
+                ctx.fillText(displayTitle, 540, 120);
+
+                // 标签 (悬浮在 iPad 上方)
+                if (tag1) drawBlurTag(ctx, tag1, 540 - 150, 250, "#3b82f6"); // 蓝色系
+                if (tag2) drawBlurTag(ctx, tag2, 540 + 150, 250, "#10b981"); // 绿色系
+
+                // 底部副标题
+                ctx.font = "600 36px sans-serif";
+                ctx.fillStyle = "rgba(255,255,255,0.8)";
+                ctx.shadowBlur = 0;
+                ctx.fillText(subtitle, 540, 1180);
+
+                // 底部水印
+                ctx.font = "400 24px sans-serif";
+                ctx.fillStyle = "rgba(255,255,255,0.4)";
+                ctx.fillText("@洋宝贝影视 · 每日更新", 540, 1320);
+
+                canvas.toBlob(blob => resolve(blob), 'image/png');
+            };
+            img.src = URL.createObjectURL(file);
+        });
     }
-    function roundRect(c,x,y,w,h,r,f){c.beginPath();c.roundRect(x,y,w,h,r);if(f)c.fill();else c.stroke()}
-    function drawTag(c,t,x,y){c.save();c.font="bold 26px sans-serif";const w=c.measureText(t).width+40;c.fillStyle="rgba(255,255,255,0.2)";c.strokeStyle="rgba(255,255,255,0.3)";c.lineWidth=1;c.beginPath();c.roundRect(x,y,w,56,28);c.fill();c.stroke();c.fillStyle="#fff";c.textAlign="center";c.textBaseline="middle";c.fillText(t,x+w/2,y+30);c.restore()}
-    function drawBadge(c,x,y,t,b,f){c.save();c.font="bold 22px sans-serif";const w=c.measureText(t).width+30;c.fillStyle=b;c.beginPath();c.roundRect(x,y,w,40,20);c.fill();c.fillStyle=f;c.textAlign="center";c.textBaseline="middle";c.fillText(t,x+w/2,y+22);c.restore()}
-    function drawImageProp(ctx,img,x,y,w,h){const i=getDrawImagePropInfo(img,x,y,w,h);ctx.drawImage(img,i.sx,i.sy,i.sw,i.sh,i.x,i.y,i.w,i.h)}
-    function getDrawImagePropInfo(img,x,y,w,h){var iw=img.width,ih=img.height,r=Math.min(w/iw,h/ih),nw=iw*r,nh=ih*r,ar=1;if(nw<w)ar=w/nw;if(Math.abs(ar-1)<1e-14&&nh<h)ar=h/nh;nw*=ar;nh*=ar;var cw=iw/(nw/w),ch=ih/(nh/h),cx=(iw-cw)*0.5,cy=(ih-ch)*0.5;if(cx<0)cx=0;if(cy<0)cy=0;if(cw>iw)cw=iw;if(ch>ih)ch=ih;return{sx:cx,sy:cy,sw:cw,sh:ch,x:x,y:y,w:nw,h:nh}}
+
+    // --- 绘图组件库 ---
+    function roundRect(ctx, x, y, w, h, r, fill) {
+        ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+        if(fill) ctx.fill(); else ctx.stroke();
+    }
+
+    // 高亮磨砂标签
+    function drawBlurTag(ctx, text, x, y, themeColor) {
+        ctx.save();
+        ctx.font = "bold 28px sans-serif";
+        const w = ctx.measureText(text).width + 50;
+        const h = 64;
+        const startX = x - w/2;
+        
+        // 渐变背景
+        const grad = ctx.createLinearGradient(startX, y, startX+w, y+h);
+        grad.addColorStop(0, themeColor);
+        grad.addColorStop(1, adjustColor(themeColor, 40)); // 亮一点
+
+        ctx.fillStyle = grad;
+        ctx.shadowColor = "rgba(0,0,0,0.3)"; ctx.shadowBlur = 15; ctx.shadowOffsetY = 5;
+        
+        ctx.beginPath(); ctx.roundRect(startX, y, w, h, 32); ctx.fill();
+
+        // 文字
+        ctx.fillStyle = "#fff"; ctx.shadowBlur = 0;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(text, x, y + h/2 + 2);
+        ctx.restore();
+    }
+
+    // 小药丸标签
+    function drawPill(ctx, x, y, text, bg, color) {
+        ctx.save();
+        ctx.font = "bold 24px sans-serif";
+        const w = ctx.measureText(text).width + 30;
+        ctx.fillStyle = bg;
+        ctx.beginPath(); ctx.roundRect(x, y, w, 44, 22); ctx.fill();
+        ctx.fillStyle = color;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(text, x + w/2, y + 24);
+        ctx.restore();
+    }
+
+    // 颜色变亮工具
+    function adjustColor(color, amount) {
+        return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+    }
+
+    function drawImageProp(ctx, img, x, y, w, h) {
+        const i = getDrawImagePropInfo(img, x, y, w, h);
+        ctx.drawImage(img, i.sx, i.sy, i.sw, i.sh, i.x, i.y, i.w, i.h);
+    }
+
+    function getDrawImagePropInfo(img, x, y, w, h) {
+        var iw=img.width, ih=img.height, r=Math.min(w/iw, h/ih), nw=iw*r, nh=ih*r, ar=1;
+        if(nw<w) ar=w/nw; if(Math.abs(ar-1)<1e-14 && nh<h) ar=h/nh;
+        nw*=ar; nh*=ar;
+        var cw=iw/(nw/w), ch=ih/(nh/h), cx=(iw-cw)*0.5, cy=(ih-ch)*0.5;
+        if(cx<0) cx=0; if(cy<0) cy=0; if(cw>iw) cw=iw; if(ch>ih) ch=ih;
+        return {sx:cx, sy:cy, sw:cw, sh:ch, x:x, y:y, w:nw, h:nh, cx:cx, cy:cy};
+    }
 </script>
 </body>
 </html>
