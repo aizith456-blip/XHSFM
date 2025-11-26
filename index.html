@@ -3,58 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小红书封面工厂 (V11.0 国内极速版)</title>
+    <title>小红书封面工厂 (V12.0 颜值天花板)</title>
     
-    <!-- 🔴 核心修改：使用七牛云 Staticfile 国内源，极速稳定 -->
+    <!-- 国内极速 CDN -->
     <script src="https://cdn.staticfile.org/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.staticfile.org/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
-        /* 基础重置 */
-        body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #e0e5ec; padding: 20px; color: #333; user-select: none; margin: 0; }
+        body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #eef2f5; padding: 20px; color: #333; user-select: none; margin: 0; }
         .container { max-width: 1100px; margin: 0 auto; background: white; padding: 30px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 20px;}
         
-        /* 标题 */
-        .header { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 20px; position: relative; }
+        .header { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 20px; }
         h1 { margin: 0; background: linear-gradient(45deg, #ff2442, #ff5e7e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; letter-spacing: -1px; }
-        .badge { background: #e6f7ff; color: #1890ff; font-size: 12px; padding: 2px 8px; border-radius: 4px; border: 1px solid #91d5ff; vertical-align: middle; margin-left: 10px; font-weight: normal; -webkit-text-fill-color: #1890ff; }
 
-        /* 布局 */
         .main-content { display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
-        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 320px; }
+        .sidebar { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 340px; }
         .preview-area { flex: 1.5; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f7f9fc; padding: 20px; border-radius: 16px; border: 2px dashed #dde2e6; position: relative; min-width: 320px; }
 
-        /* 卡片组件 */
         .card { background: #fff; padding: 18px; border-radius: 12px; border: 1px solid #edf2f7; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: 0.2s; }
         .card:hover { border-color: #ff2442; transform: translateY(-2px); }
         .card h3 { margin: 0 0 12px 0; font-size: 15px; color: #444; font-weight: 700; border-left: 4px solid #ff2442; padding-left: 10px; }
         
-        /* 控件 */
-        select, input[type="file"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; box-sizing: border-box; }
+        select, input[type="file"], input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; box-sizing: border-box; outline: none; transition: 0.2s; }
+        input[type="text"]:focus { border-color: #ff2442; }
         
-        /* 画布 */
         #mainCanvas { 
-            width: 100%; max-width: 420px; height: auto; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15); border-radius: 12px; cursor: grab; 
+            width: 100%; max-width: 450px; height: auto; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); border-radius: 16px; cursor: grab; 
             transition: transform 0.1s; background: #fff;
         }
         #mainCanvas:active { cursor: grabbing; transform: scale(0.99); }
 
-        /* 导航按钮 */
         .nav-btn-group { display: flex; gap: 10px; margin-top: 20px; width: 100%; max-width: 420px; }
         .nav-btn { flex: 1; padding: 12px; border: none; background: #fff; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; color: #555; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .nav-btn:hover { background: #f5f5f5; border-color: #bbb; }
 
-        /* 滑杆 */
         .range-wrap { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: bold; color: #555; margin-top: 10px; }
         input[type="range"] { flex: 1; accent-color: #ff2442; cursor: pointer; }
 
-        /* 复选框组 */
-        .checkbox-group { display: flex; gap: 15px; margin-top: 15px; }
-        .checkbox-item { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; color: #666; }
-        .checkbox-item input { accent-color: #ff2442; width: 16px; height: 16px; }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px; }
+        .checkbox-item { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; color: #666; }
+        .checkbox-item input { accent-color: #ff2442; }
 
-        /* 主按钮 */
+        /* 文案生成器样式 */
+        .input-group { display: flex; gap: 8px; margin-top: 5px; }
+        .mini-btn { padding: 0 12px; background: #f0f0f0; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; transition: 0.2s; }
+        .mini-btn:hover { background: #e0e0e0; transform: scale(1.1); }
+
         .action-btn { 
             background: linear-gradient(135deg, #ff2442 0%, #ff6b81 100%); 
             color: white; border: none; padding: 20px; border-radius: 12px; 
@@ -64,29 +59,15 @@
         .action-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(255, 36, 66, 0.4); }
         .action-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 
+        #statusLog { font-size: 13px; color: #ff2442; text-align: center; font-weight: bold; margin-top: 10px; }
         .hint { font-size: 12px; color: #999; text-align: center; margin-top: 15px; }
-        #previewInfo { font-family: monospace; font-size: 12px; color: #666; margin-top: 15px; background: #fff; padding: 8px; border-radius: 6px; border: 1px solid #eee; width: 100%; box-sizing: border-box; text-align: center;}
-
-        /* 加载遮罩 */
-        #loadingMask {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
-        }
-        .loader { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #ff2442; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<!-- 加载遮罩 -->
-<div id="loadingMask">
-    <div class="loader"></div>
-    <p style="margin-top:20px; color:#555; font-weight:bold;">正在接入国内加速节点...</p>
-</div>
-
 <div class="container">
     <div class="header">
-        <h1>🎨 封面工厂 V11.0 <span class="badge">国内极速版</span></h1>
+        <h1>🎨 封面工厂 V12.0 <span style="font-size:0.5em; color:#999; -webkit-text-fill-color:#999;">颜值天花板</span></h1>
     </div>
 
     <div class="main-content">
@@ -107,21 +88,33 @@
             </div>
 
             <div class="card">
-                <h3>3. 构图微调 (全局生效)</h3>
+                <h3>3. 颜值与文案设置</h3>
+                
+                <!-- 底部文案设置 -->
+                <div style="font-size:12px; font-weight:bold; color:#555; margin-bottom:5px;">底部文案 (可随机):</div>
+                <div class="input-group">
+                    <input type="text" id="footerTextInput" value="@洋宝贝影视 · 独家整理">
+                    <button class="mini-btn" onclick="randomFooter()" title="随机生成高转化文案">🎲</button>
+                </div>
+
+                <hr style="border:0; border-top:1px dashed #eee; margin:15px 0;">
+
                 <div class="range-wrap">
                     <span>🔍 缩放画面</span>
                     <input type="range" id="zoomSlider" min="1.0" max="2.5" step="0.05" value="1.3">
-                    <span id="zoomVal" style="color:#ff2442; min-width:40px; text-align:right;">1.3x</span>
+                    <span id="zoomVal" style="color:#ff2442;">1.3x</span>
                 </div>
                 
                 <div class="checkbox-group">
                     <label class="checkbox-item"><input type="checkbox" id="dynamicBg" checked> 氛围背景</label>
                     <label class="checkbox-item"><input type="checkbox" id="showGlass" checked> 放大镜</label>
+                    <label class="checkbox-item"><input type="checkbox" id="randomColor" checked> 🌈 随机标题色</label>
+                    <label class="checkbox-item"><input type="checkbox" id="showDecor" checked> ✨ 增加装饰</label>
                 </div>
             </div>
 
             <button id="startBtn" class="action-btn" disabled>📥 批量生成 (原名输出)</button>
-            <div id="statusLog" style="font-size:13px; color:#ff2442; text-align:center; font-weight:bold;">等待上传...</div>
+            <div id="statusLog">等待上传...</div>
         </div>
 
         <!-- 右侧预览区 -->
@@ -134,37 +127,25 @@
                 <button class="nav-btn" onclick="nextImage()">下一张 ➡️</button>
             </div>
             
-            <div id="previewInfo">请先上传文件进行预览</div>
-            <div class="hint">✨ 在画面上【按住鼠标拖动】可调整人物位置</div>
+            <div class="hint">✨ 拖动画面调整位置 | 标题颜色和底部文案可自定义</div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 系统自检 ---
-    window.onload = function() {
-        // 检查库是否加载
-        if (typeof JSZip !== 'undefined' && typeof saveAs !== 'undefined') {
-            setTimeout(() => {
-                document.getElementById('loadingMask').style.display = 'none';
-            }, 500); // 稍微停留一下，让用户感觉到检查过程
-        } else {
-            document.querySelector('#loadingMask p').innerHTML = 
-                "<span style='color:red'>❌ 网络错误：工具库加载失败。</span><br>请检查网络或刷新页面。";
-        }
-    };
-
     // --- 核心变量 ---
     const canvas = document.getElementById('mainCanvas');
     const ctx = canvas.getContext('2d');
     
+    // UI
     const zoomSlider = document.getElementById('zoomSlider');
     const zoomVal = document.getElementById('zoomVal');
     const statusLog = document.getElementById('statusLog');
     const startBtn = document.getElementById('startBtn');
-    const previewInfo = document.getElementById('previewInfo');
     const pageIndicator = document.getElementById('pageIndicator');
+    const footerInput = document.getElementById('footerTextInput');
     
+    // 数据状态
     let state = {
         csvData: [],
         imageMap: {},
@@ -178,12 +159,42 @@
         lastMouseY: 0
     };
 
+    // --- 文案库 ---
+    const footerPhrases = [
+        "@洋宝贝影视 · 独家整理",
+        "私藏片单 | 绝美画质",
+        "假期必看 | 拒绝剧荒",
+        "网盘直发 | 拿图滴滴",
+        "宝藏资源 | 每日更新",
+        "评论区见 | 懂的都懂",
+        "高清原盘 | 视觉盛宴",
+        "深夜影院 | 治愈时刻"
+    ];
+
+    function randomFooter() {
+        const randomIndex = Math.floor(Math.random() * footerPhrases.length);
+        footerInput.value = footerPhrases[randomIndex];
+        renderCurrentFrame();
+    }
+
+    // --- 颜色库 (小红书风格渐变) ---
+    const gradients = [
+        ["#FFFFFF", "#FFFFFF"], // 纯白
+        ["#FFF6B7", "#F6416C"], // 糖果甜心
+        ["#81FBB8", "#28C76F"], // 薄荷绿
+        ["#FCCF31", "#F55555"], // 落日橙
+        ["#E0C3FC", "#8EC5FC"], // 独角兽
+        ["#FFFFFF", "#E0E0E0"]  // 银灰
+    ];
+
     // --- 交互事件 ---
     zoomSlider.oninput = function() {
         state.scale = parseFloat(this.value);
         zoomVal.innerText = state.scale.toFixed(1) + "x";
         renderCurrentFrame();
     };
+
+    footerInput.addEventListener('input', renderCurrentFrame);
 
     canvas.addEventListener('mousedown', e => {
         if(!state.currentImgObj) return;
@@ -197,8 +208,7 @@
         if (!state.isDragging) return;
         const deltaX = e.clientX - state.lastMouseX;
         const deltaY = e.clientY - state.lastMouseY;
-        const displayWidth = canvas.clientWidth;
-        const scaleFactor = canvas.width / displayWidth;
+        const scaleFactor = canvas.width / canvas.clientWidth;
         state.panX += deltaX * scaleFactor;
         state.panY += deltaY * scaleFactor;
         state.lastMouseX = e.clientX;
@@ -211,8 +221,10 @@
         canvas.style.cursor = 'grab';
     });
 
-    document.getElementById('dynamicBg').onchange = renderCurrentFrame;
-    document.getElementById('showGlass').onchange = renderCurrentFrame;
+    // 监听所有复选框
+    ['dynamicBg', 'showGlass', 'randomColor', 'showDecor'].forEach(id => {
+        document.getElementById(id).onchange = renderCurrentFrame;
+    });
 
     // --- 工具函数 ---
     function cleanFileName(path) {
@@ -221,11 +233,7 @@
     }
 
     function cleanTitleText(text) {
-        return text.replace(/\?\?/g, "")
-                   .replace(/SOS/ig, "")
-                   .replace(/【.*?】/g, "")
-                   .replace(/[^\u4e00-\u9fa5a-zA-Z0-9]$/, "") // 去除尾部乱码
-                   .trim();
+        return text.replace(/\?\?/g, "").replace(/SOS/ig, "").replace(/【.*?】/g, "").replace(/[^\u4e00-\u9fa5a-zA-Z0-9]$/, "").trim();
     }
 
     // --- 文件上传 ---
@@ -235,9 +243,7 @@
         const reader = new FileReader();
         reader.onload = function(evt) {
             const text = evt.target.result;
-            // Excel 检查
-            if (text.startsWith("PK")) { alert("请勿直接上传 Excel！请另存为 CSV 格式。"); return; }
-            
+            if (text.startsWith("PK")) { alert("请上传CSV格式！"); return; }
             const lines = text.split('\n').filter(line => line.trim() !== "");
             state.csvData = [];
             lines.forEach(row => {
@@ -247,7 +253,9 @@
                         matchKey: cleanFileName(cols[0]), 
                         title: (cols[1] || "").replace(/"/g, '').trim(),
                         tag1: (cols[2] || "").replace(/"/g, '').trim(),
-                        tag2: (cols[3] || "").replace(/"/g, '').trim()
+                        tag2: (cols[3] || "").replace(/"/g, '').trim(),
+                        // 为每张图预先生成一个随机色索引
+                        colorIndex: Math.floor(Math.random() * gradients.length) 
                     });
                 }
             });
@@ -289,8 +297,6 @@
         const item = state.csvData[index];
         if (!item) return;
         pageIndicator.innerText = `${index + 1} / ${state.csvData.length}`;
-        previewInfo.innerHTML = `文件名: <b>${item.matchKey}</b><br>标题: ${item.title}`;
-        
         const file = state.imageMap[item.matchKey];
         if (file) {
             const img = new Image();
@@ -301,7 +307,7 @@
             ctx.clearRect(0,0,canvas.width, canvas.height);
             ctx.fillStyle = "#f5f5f5"; ctx.fillRect(0,0,1080,1440);
             ctx.fillStyle = "#999"; ctx.font = "40px sans-serif"; ctx.textAlign="center";
-            ctx.fillText("❌ 未找到图片文件", 540, 720);
+            ctx.fillText("❌ 未找到图片", 540, 720);
         }
     }
 
@@ -314,31 +320,46 @@
             panX: state.panX,
             panY: state.panY,
             useDynamicBg: document.getElementById('dynamicBg').checked,
-            showLens: document.getElementById('showGlass').checked
+            showLens: document.getElementById('showGlass').checked,
+            randomColor: document.getElementById('randomColor').checked,
+            showDecor: document.getElementById('showDecor').checked,
+            footerText: footerInput.value
         };
-        drawCoverToContext(ctx, state.currentImgObj, cleanTitleText(item.title), "沉浸式观影 | 4K修复", item.tag1, item.tag2, config);
+        // 如果开启随机色，使用item预存的颜色，否则用白色
+        const colorPair = config.randomColor ? gradients[item.colorIndex] : ["#FFFFFF", "#FFFFFF"];
+        
+        drawCoverToContext(ctx, state.currentImgObj, cleanTitleText(item.title), "沉浸式观影 | 4K修复", item.tag1, item.tag2, config, colorPair);
     }
 
-    function drawCoverToContext(ctx, img, title, subtitle, tag1, tag2, config) {
+    function drawCoverToContext(ctx, img, title, subtitle, tag1, tag2, config, colorPair) {
         ctx.clearRect(0, 0, 1080, 1440);
         
-        // 1. 背景
+        // 1. 背景 + 噪点质感
         if (config.useDynamicBg) {
-            ctx.save(); ctx.filter = 'blur(80px) brightness(0.8) saturate(1.2)';
+            ctx.save(); ctx.filter = 'blur(90px) brightness(0.75) saturate(1.3)';
             ctx.drawImage(img, -100, -100, 1280, 1640); ctx.restore();
+            // 叠加一层白色渐变
             const grad = ctx.createLinearGradient(0, 0, 0, 1440);
-            grad.addColorStop(0, "rgba(255,255,255,0.2)"); grad.addColorStop(1, "rgba(0,0,0,0.4)");
+            grad.addColorStop(0, "rgba(255,255,255,0.15)"); grad.addColorStop(1, "rgba(0,0,0,0.5)");
             ctx.fillStyle = grad; ctx.fillRect(0,0,1080,1440);
+            
+            // 增加噪点 (模拟胶片感)
+            drawNoise(ctx);
         } else {
             ctx.fillStyle = "#f0f2f5"; ctx.fillRect(0,0,1080,1440);
         }
 
-        // 2. iPad 绘制
+        // 2. 装饰元素 (星星/Emoji)
+        if (config.showDecor) {
+            drawDecorations(ctx);
+        }
+
+        // 3. iPad 绘制
         const padW = 880; const padH = 660; const padX = (1080 - padW) / 2; const padY = 360;
         
         // 阴影
-        ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 80; ctx.shadowOffsetY = 40;
-        ctx.fillStyle = "#000"; roundRect(ctx, padX+20, padY+20, padW-40, padH-40, 40, true); ctx.restore();
+        ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 90; ctx.shadowOffsetY = 50;
+        ctx.fillStyle = "#000"; roundRect(ctx, padX+25, padY+25, padW-50, padH-50, 45, true); ctx.restore();
         
         // 边框
         ctx.fillStyle = "#111"; roundRect(ctx, padX, padY, padW, padH, 20, true);
@@ -347,7 +368,7 @@
         const sx = padX + 12; const sy = padY + 12; const sw = padW - 24; const sh = padH - 24;
         ctx.save(); roundRect(ctx, sx, sy, sw, sh, 12, false); ctx.clip();
 
-        // 图片绘制 (拖拽 + 缩放)
+        // 图片绘制
         const iw = img.width; const ih = img.height;
         const r = Math.max(sw / iw, sh / ih); 
         const finalScale = r * config.scale;
@@ -365,37 +386,71 @@
         ctx.fillStyle = "#fff"; ctx.fillRect(sx+40, sy+sh-40, (sw-80)*0.45, 4);
         ctx.restore();
 
-        // 3. 放大镜
+        // 4. 放大镜
         if (config.showLens) {
             const lensR = 120; const lensX = padX + padW - 50; const lensY = padY + padH - 30;
             ctx.save(); ctx.beginPath(); ctx.arc(lensX, lensY, lensR, 0, Math.PI*2);
             ctx.lineWidth = 6; ctx.strokeStyle = "#fff"; ctx.shadowColor="rgba(0,0,0,0.3)"; ctx.shadowBlur=20;
             ctx.stroke(); ctx.clip();
-            // 放大镜内容
             ctx.drawImage(img, dx - (nw*1.5) + lensX - sx, dy - (nh*1.5) + lensY - sy, nw*2.5, nh*2.5);
             ctx.restore();
             drawPill(ctx, lensX - 60, lensY + 95, "✨ 4K修复", "#000", "#fff");
         }
 
-        // 4. 文字
+        // 5. 文字排版
         ctx.textAlign = "center";
         const tagY = 220;
         if (tag1) drawBlurTag(ctx, tag1, 540 - 150, tagY);
         if (tag2) drawBlurTag(ctx, tag2, 540 + 150, tagY);
 
-        ctx.textBaseline = "middle"; ctx.fillStyle = "#fff"; 
-        ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 15; ctx.shadowOffsetY = 4;
-        let fs = 85; if(title.length > 8) fs = 65; if(title.length > 12) fs = 55;
-        ctx.font = `900 ${fs}px "PingFang SC", sans-serif`; ctx.fillText(title, 540, 115);
+        // 标题 (渐变色)
+        ctx.textBaseline = "middle"; 
+        ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
+        let fs = 90; if(title.length > 8) fs = 70; if(title.length > 12) fs = 60;
+        ctx.font = `900 ${fs}px "PingFang SC", sans-serif`; 
+        
+        // 绘制渐变字
+        const textGrad = ctx.createLinearGradient(0, 50, 0, 150);
+        textGrad.addColorStop(0, colorPair[0]);
+        textGrad.addColorStop(1, colorPair[1]);
+        ctx.fillStyle = textGrad;
+        ctx.fillText(title, 540, 115);
 
+        // 底部文案 (用户自定义)
         ctx.shadowColor = "transparent"; ctx.textBaseline = "bottom";
         ctx.font = "600 32px sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.95)";
         ctx.beginPath(); ctx.moveTo(490, 1140); ctx.lineTo(590, 1140);
         ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth=2; ctx.stroke();
         ctx.fillText(subtitle, 540, 1120);
         
-        ctx.font = "400 22px sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.5)";
-        ctx.fillText("@洋宝贝影视 · 独家整理", 540, 1380);
+        ctx.font = "400 24px sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.6)";
+        ctx.fillText(config.footerText, 540, 1380);
+    }
+
+    // --- 装饰绘制函数 ---
+    function drawNoise(ctx) {
+        ctx.save();
+        ctx.globalAlpha = 0.05;
+        // 简单模拟噪点：随机绘制细小白点
+        for(let i=0; i<300; i++) {
+            ctx.fillStyle = Math.random() > 0.5 ? "#fff" : "#000";
+            ctx.fillRect(Math.random()*1080, Math.random()*1440, 2, 2);
+        }
+        ctx.restore();
+    }
+
+    function drawDecorations(ctx) {
+        // 随机画几个星星
+        ctx.save();
+        ctx.fillStyle = "rgba(255,255,255,0.6)";
+        ctx.shadowColor = "#fff"; ctx.shadowBlur = 10;
+        const stars = [{x:100,y:200}, {x:980,y:150}, {x:80,y:1300}, {x:1000,y:1250}, {x:540, y:80}];
+        stars.forEach(s => {
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, Math.random()*3+2, 0, Math.PI*2);
+            ctx.fill();
+        });
+        ctx.restore();
     }
 
     // --- 批量生成 ---
@@ -403,10 +458,10 @@
         if (!state.csvData.length) return;
         
         startBtn.disabled = true;
-        startBtn.innerHTML = "⏳ 正在批量生产中 (请勿关闭页面)...";
+        startBtn.innerHTML = "⏳ 正在批量生成中...";
         
         const zip = new JSZip();
-        const folder = zip.folder("V11_国内加速版_封面");
+        const folder = zip.folder("V12_颜值封面");
         let success = 0;
         
         const config = {
@@ -414,7 +469,10 @@
             panX: state.panX,
             panY: state.panY,
             useDynamicBg: document.getElementById('dynamicBg').checked,
-            showLens: document.getElementById('showGlass').checked
+            showLens: document.getElementById('showGlass').checked,
+            randomColor: document.getElementById('randomColor').checked,
+            showDecor: document.getElementById('showDecor').checked,
+            footerText: footerInput.value
         };
         
         const tempCanvas = document.createElement('canvas');
@@ -428,11 +486,11 @@
                     const finalTitle = cleanTitleText(item.title);
                     const img = await loadImage(state.imageMap[item.matchKey]);
                     
-                    drawCoverToContext(tempCtx, img, finalTitle, "沉浸式观影 | 4K修复", item.tag1, item.tag2, config);
+                    const colorPair = config.randomColor ? gradients[item.colorIndex] : ["#FFFFFF", "#FFFFFF"];
+                    drawCoverToContext(tempCtx, img, finalTitle, "沉浸式观影 | 4K修复", item.tag1, item.tag2, config, colorPair);
                     
                     const blob = await new Promise(r => tempCanvas.toBlob(r, 'image/png'));
                     
-                    // 使用原名，替换后缀为 png
                     let originalName = item.matchKey;
                     let downloadName = originalName.substring(0, originalName.lastIndexOf('.')) + ".png";
                     if(originalName.indexOf('.') === -1) downloadName = originalName + ".png";
@@ -445,7 +503,7 @@
         
         if(success > 0) {
             zip.generateAsync({type:"blob"}).then(content => {
-                saveAs(content, "批量封面_国内极速版.zip");
+                saveAs(content, "批量封面_V12.zip");
                 startBtn.innerHTML = "✅ 下载完成";
                 startBtn.disabled = false;
             });
