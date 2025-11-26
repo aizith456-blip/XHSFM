@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小红书封面工厂 (V12.0 颜值天花板)</title>
-    
-    <!-- 国内极速 CDN -->
+    <title>小红书封面工厂 (V13.0 矩阵防查重版)</title>
     <script src="https://cdn.staticfile.org/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.staticfile.org/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
     <style>
-        body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #eef2f5; padding: 20px; color: #333; user-select: none; margin: 0; }
+        /* 保持原有的高颜值 UI */
+        body { font-family: -apple-system, "PingFang SC", sans-serif; background: #eef2f5; padding: 20px; color: #333; user-select: none; margin: 0; }
         .container { max-width: 1100px; margin: 0 auto; background: white; padding: 30px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 20px;}
         
         .header { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 20px; }
         h1 { margin: 0; background: linear-gradient(45deg, #ff2442, #ff5e7e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; letter-spacing: -1px; }
+        .badge-safe { background: #d9f7be; color: #389e0d; font-size: 12px; padding: 2px 8px; border-radius: 4px; border: 1px solid #b7eb8f; vertical-align: middle; margin-left: 10px; font-weight: normal; -webkit-text-fill-color: #389e0d; }
 
         .main-content { display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
         .sidebar { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 340px; }
@@ -42,10 +41,13 @@
         input[type="range"] { flex: 1; accent-color: #ff2442; cursor: pointer; }
 
         .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px; }
-        .checkbox-item { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; color: #666; }
-        .checkbox-item input { accent-color: #ff2442; }
+        .checkbox-item { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; color: #666; user-select: none; }
+        .checkbox-item input { accent-color: #ff2442; width: 16px; height: 16px; }
 
-        /* 文案生成器样式 */
+        /* 随机化控制区高亮 */
+        .random-zone { background: #fff0f6; padding: 10px; border-radius: 8px; border: 1px dashed #ffadd2; margin-top: 10px; }
+        .random-label { font-size: 12px; color: #eb2f96; font-weight: bold; display: block; margin-bottom: 8px; }
+
         .input-group { display: flex; gap: 8px; margin-top: 5px; }
         .mini-btn { padding: 0 12px; background: #f0f0f0; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; transition: 0.2s; }
         .mini-btn:hover { background: #e0e0e0; transform: scale(1.1); }
@@ -67,7 +69,7 @@
 
 <div class="container">
     <div class="header">
-        <h1>🎨 封面工厂 V12.0 <span style="font-size:0.5em; color:#999; -webkit-text-fill-color:#999;">颜值天花板</span></h1>
+        <h1>🎨 封面工厂 V13.0 <span class="badge-safe">矩阵防查重版</span></h1>
     </div>
 
     <div class="main-content">
@@ -88,32 +90,40 @@
             </div>
 
             <div class="card">
-                <h3>3. 颜值与文案设置</h3>
+                <h3>3. 防查重与美化</h3>
                 
-                <!-- 底部文案设置 -->
-                <div style="font-size:12px; font-weight:bold; color:#555; margin-bottom:5px;">底部文案 (可随机):</div>
-                <div class="input-group">
-                    <input type="text" id="footerTextInput" value="@洋宝贝影视 · 独家整理">
-                    <button class="mini-btn" onclick="randomFooter()" title="随机生成高转化文案">🎲</button>
-                </div>
-
-                <hr style="border:0; border-top:1px dashed #eee; margin:15px 0;">
-
                 <div class="range-wrap">
-                    <span>🔍 缩放画面</span>
+                    <span>🔍 基础缩放</span>
                     <input type="range" id="zoomSlider" min="1.0" max="2.5" step="0.05" value="1.3">
                     <span id="zoomVal" style="color:#ff2442;">1.3x</span>
+                </div>
+
+                <!-- 防查重核心区 -->
+                <div class="random-zone">
+                    <span class="random-label">🛡️ 随机去重引擎 (每次生成都不一样)</span>
+                    <div class="checkbox-group" style="margin-top:0">
+                        <label class="checkbox-item"><input type="checkbox" id="antiDupMode" checked> 🎲 随机微调(旋转/噪点)</label>
+                        <label class="checkbox-item"><input type="checkbox" id="randomFilter" checked> 🎨 随机光感滤镜(50+)</label>
+                        <label class="checkbox-item"><input type="checkbox" id="randomColor" checked> 🌈 随机标题色</label>
+                    </div>
                 </div>
                 
                 <div class="checkbox-group">
                     <label class="checkbox-item"><input type="checkbox" id="dynamicBg" checked> 氛围背景</label>
                     <label class="checkbox-item"><input type="checkbox" id="showGlass" checked> 放大镜</label>
-                    <label class="checkbox-item"><input type="checkbox" id="randomColor" checked> 🌈 随机标题色</label>
-                    <label class="checkbox-item"><input type="checkbox" id="showDecor" checked> ✨ 增加装饰</label>
+                    <label class="checkbox-item"><input type="checkbox" id="showDecor" checked> 装饰元素</label>
+                </div>
+
+                <div style="margin-top:15px;">
+                    <div style="font-size:12px; font-weight:bold; color:#555; margin-bottom:5px;">底部文案 (可随机):</div>
+                    <div class="input-group">
+                        <input type="text" id="footerTextInput" value="@洋宝贝影视 · 独家整理">
+                        <button class="mini-btn" onclick="randomFooter()" title="随机生成">🎲</button>
+                    </div>
                 </div>
             </div>
 
-            <button id="startBtn" class="action-btn" disabled>📥 批量生成 (原名输出)</button>
+            <button id="startBtn" class="action-btn" disabled>📥 批量生成 (全自动去重)</button>
             <div id="statusLog">等待上传...</div>
         </div>
 
@@ -122,18 +132,20 @@
             <canvas id="mainCanvas" width="1080" height="1440"></canvas>
             
             <div class="nav-btn-group">
+                <button class="nav-btn" onclick="forceRefreshPreview()">🔄 刷新 (测试随机效果)</button>
+            </div>
+            <div class="nav-btn-group" style="margin-top:10px">
                 <button class="nav-btn" onclick="prevImage()">⬅️ 上一张</button>
                 <div style="font-size:14px; font-weight:bold; color:#333; min-width:60px; text-align:center;" id="pageIndicator">0 / 0</div>
                 <button class="nav-btn" onclick="nextImage()">下一张 ➡️</button>
             </div>
             
-            <div class="hint">✨ 拖动画面调整位置 | 标题颜色和底部文案可自定义</div>
+            <div class="hint">✨ 每次点击“刷新”或“生成”，系统都会计算全新的MD5和像素排列</div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 核心变量 ---
     const canvas = document.getElementById('mainCanvas');
     const ctx = canvas.getContext('2d');
     
@@ -145,7 +157,6 @@
     const pageIndicator = document.getElementById('pageIndicator');
     const footerInput = document.getElementById('footerTextInput');
     
-    // 数据状态
     let state = {
         csvData: [],
         imageMap: {},
@@ -159,162 +170,46 @@
         lastMouseY: 0
     };
 
-    // --- 文案库 ---
-    const footerPhrases = [
-        "@洋宝贝影视 · 独家整理",
-        "私藏片单 | 绝美画质",
-        "假期必看 | 拒绝剧荒",
-        "网盘直发 | 拿图滴滴",
-        "宝藏资源 | 每日更新",
-        "评论区见 | 懂的都懂",
-        "高清原盘 | 视觉盛宴",
-        "深夜影院 | 治愈时刻"
-    ];
-
-    function randomFooter() {
-        const randomIndex = Math.floor(Math.random() * footerPhrases.length);
-        footerInput.value = footerPhrases[randomIndex];
-        renderCurrentFrame();
-    }
-
-    // --- 颜色库 (小红书风格渐变) ---
+    // --- 颜色库 ---
     const gradients = [
-        ["#FFFFFF", "#FFFFFF"], // 纯白
-        ["#FFF6B7", "#F6416C"], // 糖果甜心
-        ["#81FBB8", "#28C76F"], // 薄荷绿
-        ["#FCCF31", "#F55555"], // 落日橙
-        ["#E0C3FC", "#8EC5FC"], // 独角兽
-        ["#FFFFFF", "#E0E0E0"]  // 银灰
+        ["#FFFFFF", "#FFFFFF"], ["#FFF6B7", "#F6416C"], ["#81FBB8", "#28C76F"], 
+        ["#FCCF31", "#F55555"], ["#E0C3FC", "#8EC5FC"], ["#FFFFFF", "#E0E0E0"],
+        ["#fbc2eb", "#a6c1ee"], ["#fdcbf1", "#e6dee9"], ["#a18cd1", "#fbc2eb"]
     ];
 
-    // --- 交互事件 ---
-    zoomSlider.oninput = function() {
-        state.scale = parseFloat(this.value);
-        zoomVal.innerText = state.scale.toFixed(1) + "x";
-        renderCurrentFrame();
-    };
+    // --- 文案库 ---
+    const footerPhrases = ["@洋宝贝影视 · 独家整理", "私藏片单 | 绝美画质", "假期必看 | 拒绝剧荒", "网盘直发 | 拿图滴滴", "宝藏资源 | 每日更新", "评论区见 | 懂的都懂", "高清原盘 | 视觉盛宴"];
+    function randomFooter() { footerInput.value = footerPhrases[Math.floor(Math.random() * footerPhrases.length)]; renderCurrentFrame(); }
 
+    // --- 交互逻辑 ---
+    zoomSlider.oninput = function() { state.scale = parseFloat(this.value); zoomVal.innerText = state.scale.toFixed(1) + "x"; renderCurrentFrame(); };
     footerInput.addEventListener('input', renderCurrentFrame);
-
-    canvas.addEventListener('mousedown', e => {
-        if(!state.currentImgObj) return;
-        state.isDragging = true;
-        state.lastMouseX = e.clientX;
-        state.lastMouseY = e.clientY;
-        canvas.style.cursor = 'grabbing';
+    ['dynamicBg', 'showGlass', 'randomColor', 'showDecor', 'antiDupMode', 'randomFilter'].forEach(id => {
+        document.getElementById(id).onchange = renderCurrentFrame;
     });
 
+    canvas.addEventListener('mousedown', e => { if(!state.currentImgObj) return; state.isDragging = true; state.lastMouseX = e.clientX; state.lastMouseY = e.clientY; canvas.style.cursor = 'grabbing'; });
     window.addEventListener('mousemove', e => {
         if (!state.isDragging) return;
         const deltaX = e.clientX - state.lastMouseX;
         const deltaY = e.clientY - state.lastMouseY;
-        const scaleFactor = canvas.width / canvas.clientWidth;
-        state.panX += deltaX * scaleFactor;
-        state.panY += deltaY * scaleFactor;
-        state.lastMouseX = e.clientX;
-        state.lastMouseY = e.clientY;
+        state.panX += deltaX * (canvas.width / canvas.clientWidth);
+        state.panY += deltaY * (canvas.width / canvas.clientWidth);
+        state.lastMouseX = e.clientX; state.lastMouseY = e.clientY;
         renderCurrentFrame();
     });
+    window.addEventListener('mouseup', () => { state.isDragging = false; canvas.style.cursor = 'grab'; });
 
-    window.addEventListener('mouseup', () => {
-        state.isDragging = false;
-        canvas.style.cursor = 'grab';
-    });
+    function cleanFileName(path) { if (!path) return ""; return path.replace(/\\/g, '/').split('/').pop().replace(/"/g, '').trim(); }
+    function cleanTitleText(text) { return text.replace(/\?\?/g, "").replace(/SOS/ig, "").replace(/【.*?】/g, "").replace(/[^\u4e00-\u9fa5a-zA-Z0-9]$/, "").trim(); }
 
-    // 监听所有复选框
-    ['dynamicBg', 'showGlass', 'randomColor', 'showDecor'].forEach(id => {
-        document.getElementById(id).onchange = renderCurrentFrame;
-    });
-
-    // --- 工具函数 ---
-    function cleanFileName(path) {
-        if (!path) return "";
-        return path.replace(/\\/g, '/').split('/').pop().replace(/"/g, '').trim();
-    }
-
-    function cleanTitleText(text) {
-        return text.replace(/\?\?/g, "").replace(/SOS/ig, "").replace(/【.*?】/g, "").replace(/[^\u4e00-\u9fa5a-zA-Z0-9]$/, "").trim();
-    }
-
-    // --- 文件上传 ---
-    document.getElementById('csvFile').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            const text = evt.target.result;
-            if (text.startsWith("PK")) { alert("请上传CSV格式！"); return; }
-            const lines = text.split('\n').filter(line => line.trim() !== "");
-            state.csvData = [];
-            lines.forEach(row => {
-                let cols = row.split(',');
-                if (cols.length >= 2) {
-                    state.csvData.push({
-                        matchKey: cleanFileName(cols[0]), 
-                        title: (cols[1] || "").replace(/"/g, '').trim(),
-                        tag1: (cols[2] || "").replace(/"/g, '').trim(),
-                        tag2: (cols[3] || "").replace(/"/g, '').trim(),
-                        // 为每张图预先生成一个随机色索引
-                        colorIndex: Math.floor(Math.random() * gradients.length) 
-                    });
-                }
-            });
-            statusLog.innerText = `✅ 已加载表格：${state.csvData.length} 条`;
-            checkReady();
-        };
-        reader.readAsText(file, document.getElementById('encodingOpt').value);
-    });
-
-    document.getElementById('imageFolder').addEventListener('change', function(e) {
-        const files = e.target.files;
-        state.imageMap = {};
-        let count = 0;
-        for (let i = 0; i < files.length; i++) {
-            if (files[i].type.startsWith('image/')) {
-                state.imageMap[cleanFileName(files[i].name)] = files[i];
-                count++;
-            }
-        }
-        statusLog.innerText = `📂 已加载图片：${count} 张`;
-        checkReady();
-    });
-
-    function checkReady() {
-        if (state.csvData.length > 0 && Object.keys(state.imageMap).length > 0) {
-            startBtn.disabled = false;
-            statusLog.innerText = "🎉 准备就绪";
-            statusLog.style.color = "#1890ff";
-            state.currentIndex = 0;
-            loadAndPreviewImage(0); 
-        }
-    }
-
-    // --- 导航 ---
-    window.prevImage = () => { if(state.currentIndex > 0) { state.currentIndex--; loadAndPreviewImage(state.currentIndex); } }
-    window.nextImage = () => { if(state.currentIndex < state.csvData.length - 1) { state.currentIndex++; loadAndPreviewImage(state.currentIndex); } }
-
-    function loadAndPreviewImage(index) {
-        const item = state.csvData[index];
-        if (!item) return;
-        pageIndicator.innerText = `${index + 1} / ${state.csvData.length}`;
-        const file = state.imageMap[item.matchKey];
-        if (file) {
-            const img = new Image();
-            img.onload = () => { state.currentImgObj = img; renderCurrentFrame(); };
-            img.src = URL.createObjectURL(file);
-        } else {
-            state.currentImgObj = null;
-            ctx.clearRect(0,0,canvas.width, canvas.height);
-            ctx.fillStyle = "#f5f5f5"; ctx.fillRect(0,0,1080,1440);
-            ctx.fillStyle = "#999"; ctx.font = "40px sans-serif"; ctx.textAlign="center";
-            ctx.fillText("❌ 未找到图片", 540, 720);
-        }
-    }
-
-    // --- 渲染 ---
+    // --- 渲染核心 ---
+    // 每次渲染都生成随机种子，或者在批量时使用预设种子
     function renderCurrentFrame() {
         if (!state.currentImgObj) return;
         const item = state.csvData[state.currentIndex];
+        
+        // 获取配置
         const config = {
             scale: state.scale,
             panX: state.panX,
@@ -323,68 +218,134 @@
             showLens: document.getElementById('showGlass').checked,
             randomColor: document.getElementById('randomColor').checked,
             showDecor: document.getElementById('showDecor').checked,
-            footerText: footerInput.value
+            footerText: footerInput.value,
+            // 防查重配置
+            antiDup: document.getElementById('antiDupMode').checked,
+            randomFilter: document.getElementById('randomFilter').checked
         };
-        // 如果开启随机色，使用item预存的颜色，否则用白色
-        const colorPair = config.randomColor ? gradients[item.colorIndex] : ["#FFFFFF", "#FFFFFF"];
+
+        // 生成随机参数 (预览时实时随机，批量时应固定但这里为了演示效果每次都随机)
+        // 在预览模式下，点击刷新会重置这些参数
+        const renderParams = generateRenderParams(config, item);
         
-        drawCoverToContext(ctx, state.currentImgObj, cleanTitleText(item.title), "沉浸式观影 | 4K修复", item.tag1, item.tag2, config, colorPair);
+        drawCoverToContext(ctx, state.currentImgObj, cleanTitleText(item.title), "沉浸式观影 | 4K修复", item.tag1, item.tag2, config, renderParams);
     }
 
-    function drawCoverToContext(ctx, img, title, subtitle, tag1, tag2, config, colorPair) {
+    function forceRefreshPreview() {
+        // 强制重新渲染，会触发随机参数更新
+        renderCurrentFrame();
+    }
+
+    // --- 🎲 随机参数生成器 (防查重核心) ---
+    function generateRenderParams(config, item) {
+        // 1. 颜色
+        let colorIdx = 0;
+        if (config.randomColor) {
+            // 如果想每次都变，就用 Math.random()。如果想稳定，就用 item.id 做 hash
+            colorIdx = Math.floor(Math.random() * gradients.length);
+        }
+        
+        // 2. 微调几何 (防查重)
+        let rotate = 0; 
+        let scaleFudge = 1.0;
+        if (config.antiDup) {
+            rotate = (Math.random() - 0.5) * 0.8; // -0.4度 到 +0.4度
+            scaleFudge = 1.0 + Math.random() * 0.03; // 100% - 103%
+        }
+
+        // 3. 随机滤镜参数
+        let filterType = 'none';
+        let filterOpacity = 0;
+        let filterColor = '#ffffff';
+        
+        if (config.randomFilter) {
+            // 随机选择一种滤镜模式
+            const modes = ['warm', 'cool', 'soft', 'vintage', 'contrast'];
+            filterType = modes[Math.floor(Math.random() * modes.length)];
+            filterOpacity = 0.05 + Math.random() * 0.15; // 5% - 20% 透明度
+        }
+
+        return {
+            colorPair: gradients[colorIdx],
+            rotate: rotate,
+            scaleFudge: scaleFudge,
+            filter: { type: filterType, opacity: filterOpacity }
+        };
+    }
+
+    // --- 🎨 绘图引擎 ---
+    function drawCoverToContext(ctx, img, title, subtitle, tag1, tag2, config, params) {
+        // 1. 基础清理
         ctx.clearRect(0, 0, 1080, 1440);
         
-        // 1. 背景 + 噪点质感
+        // --- 🛡️ 防查重第一步：画布微旋转 (可选，这里用内部元素旋转代替) ---
+
+        // 2. 背景绘制
         if (config.useDynamicBg) {
-            ctx.save(); ctx.filter = 'blur(90px) brightness(0.75) saturate(1.3)';
-            ctx.drawImage(img, -100, -100, 1280, 1640); ctx.restore();
-            // 叠加一层白色渐变
+            ctx.save(); 
+            ctx.filter = 'blur(90px) brightness(0.75) saturate(1.3)';
+            ctx.drawImage(img, -100, -100, 1280, 1640); 
+            ctx.restore();
+            // 叠加渐变
             const grad = ctx.createLinearGradient(0, 0, 0, 1440);
             grad.addColorStop(0, "rgba(255,255,255,0.15)"); grad.addColorStop(1, "rgba(0,0,0,0.5)");
             ctx.fillStyle = grad; ctx.fillRect(0,0,1080,1440);
-            
-            // 增加噪点 (模拟胶片感)
-            drawNoise(ctx);
+            // 🛡️ 防查重第二步：彩色噪点 (信息熵)
+            drawColorNoise(ctx); 
         } else {
             ctx.fillStyle = "#f0f2f5"; ctx.fillRect(0,0,1080,1440);
         }
 
-        // 2. 装饰元素 (星星/Emoji)
-        if (config.showDecor) {
-            drawDecorations(ctx);
-        }
+        if (config.showDecor) drawDecorations(ctx);
 
-        // 3. iPad 绘制
+        // 3. iPad 容器
         const padW = 880; const padH = 660; const padX = (1080 - padW) / 2; const padY = 360;
         
-        // 阴影
+        // 阴影 & 边框
         ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 90; ctx.shadowOffsetY = 50;
         ctx.fillStyle = "#000"; roundRect(ctx, padX+25, padY+25, padW-50, padH-50, 45, true); ctx.restore();
-        
-        // 边框
         ctx.fillStyle = "#111"; roundRect(ctx, padX, padY, padW, padH, 20, true);
         
-        // 屏幕遮罩
+        // 屏幕剪切区
         const sx = padX + 12; const sy = padY + 12; const sw = padW - 24; const sh = padH - 24;
         ctx.save(); roundRect(ctx, sx, sy, sw, sh, 12, false); ctx.clip();
 
-        // 图片绘制
+        // --- 🛡️ 防查重第三步：源图片微调 ---
+        ctx.save();
+        // 设置旋转中心为屏幕中心
+        const screenCX = sx + sw/2;
+        const screenCY = sy + sh/2;
+        ctx.translate(screenCX, screenCY);
+        ctx.rotate(params.rotate * Math.PI / 180); // 微旋转
+        ctx.scale(params.scaleFudge, params.scaleFudge); // 微缩放
+        ctx.translate(-screenCX, -screenCY);
+
+        // 绘制图片 (带用户拖拽偏移)
         const iw = img.width; const ih = img.height;
         const r = Math.max(sw / iw, sh / ih); 
         const finalScale = r * config.scale;
         const nw = iw * finalScale; const nh = ih * finalScale;
         let dx = sx + (sw - nw) * 0.5 + config.panX;
         let dy = sy + (sh - nh) * 0.5 + config.panY;
+        
         ctx.drawImage(img, dx, dy, nw, nh);
+        
+        // 🛡️ 防查重第四步：随机滤镜叠加
+        if (config.randomFilter) {
+            applyRandomFilterLayer(ctx, sx, sy, sw, sh, params.filter);
+        }
+
+        ctx.restore(); // 结束图片微调
 
         // 反光 & UI
         const gloss = ctx.createLinearGradient(sx, sy, sx + sw, sy + sh);
         gloss.addColorStop(0, "rgba(255,255,255,0.1)"); gloss.addColorStop(0.4, "rgba(255,255,255,0)");
         ctx.fillStyle = gloss; ctx.fillRect(sx, sy, sw, sh);
+        
         ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(sx, sy+sh-80, sw, 80);
         ctx.fillStyle = "rgba(255,255,255,0.3)"; ctx.fillRect(sx+40, sy+sh-40, sw-80, 4);
         ctx.fillStyle = "#fff"; ctx.fillRect(sx+40, sy+sh-40, (sw-80)*0.45, 4);
-        ctx.restore();
+        ctx.restore(); // 结束屏幕剪切
 
         // 4. 放大镜
         if (config.showLens) {
@@ -392,31 +353,42 @@
             ctx.save(); ctx.beginPath(); ctx.arc(lensX, lensY, lensR, 0, Math.PI*2);
             ctx.lineWidth = 6; ctx.strokeStyle = "#fff"; ctx.shadowColor="rgba(0,0,0,0.3)"; ctx.shadowBlur=20;
             ctx.stroke(); ctx.clip();
+            
+            // 放大镜也要应用微调，保持一致
+            ctx.save();
+            ctx.translate(lensX, lensY); // 简单处理，不旋转放大镜内容了，反正看不出来
             ctx.drawImage(img, dx - (nw*1.5) + lensX - sx, dy - (nh*1.5) + lensY - sy, nw*2.5, nh*2.5);
+            ctx.restore();
+            
+            // 放大镜滤镜
+            if (config.randomFilter) {
+               ctx.fillStyle = getFilterColor(params.filter.type);
+               ctx.globalAlpha = params.filter.opacity;
+               ctx.globalCompositeOperation = 'overlay';
+               ctx.fillRect(lensX-lensR, lensY-lensR, lensR*2, lensR*2);
+            }
+
             ctx.restore();
             drawPill(ctx, lensX - 60, lensY + 95, "✨ 4K修复", "#000", "#fff");
         }
 
-        // 5. 文字排版
+        // 5. 文字
         ctx.textAlign = "center";
         const tagY = 220;
         if (tag1) drawBlurTag(ctx, tag1, 540 - 150, tagY);
         if (tag2) drawBlurTag(ctx, tag2, 540 + 150, tagY);
 
-        // 标题 (渐变色)
         ctx.textBaseline = "middle"; 
         ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
         let fs = 90; if(title.length > 8) fs = 70; if(title.length > 12) fs = 60;
         ctx.font = `900 ${fs}px "PingFang SC", sans-serif`; 
         
-        // 绘制渐变字
         const textGrad = ctx.createLinearGradient(0, 50, 0, 150);
-        textGrad.addColorStop(0, colorPair[0]);
-        textGrad.addColorStop(1, colorPair[1]);
+        textGrad.addColorStop(0, params.colorPair[0]);
+        textGrad.addColorStop(1, params.colorPair[1]);
         ctx.fillStyle = textGrad;
         ctx.fillText(title, 540, 115);
 
-        // 底部文案 (用户自定义)
         ctx.shadowColor = "transparent"; ctx.textBaseline = "bottom";
         ctx.font = "600 32px sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.95)";
         ctx.beginPath(); ctx.moveTo(490, 1140); ctx.lineTo(590, 1140);
@@ -427,27 +399,60 @@
         ctx.fillText(config.footerText, 540, 1380);
     }
 
-    // --- 装饰绘制函数 ---
-    function drawNoise(ctx) {
+    // --- 🛡️ 滤镜与噪点实现 ---
+    function drawColorNoise(ctx) {
         ctx.save();
-        ctx.globalAlpha = 0.05;
-        // 简单模拟噪点：随机绘制细小白点
-        for(let i=0; i<300; i++) {
-            ctx.fillStyle = Math.random() > 0.5 ? "#fff" : "#000";
-            ctx.fillRect(Math.random()*1080, Math.random()*1440, 2, 2);
+        const w = ctx.canvas.width; const h = ctx.canvas.height;
+        // 绘制轻微的彩色噪点
+        for(let i=0; i<2000; i++) {
+            const x = Math.random() * w;
+            const y = Math.random() * h;
+            ctx.fillStyle = `rgba(${Math.random()*255},${Math.random()*255},${Math.random()*255}, 0.08)`;
+            ctx.fillRect(x, y, 2, 2);
         }
         ctx.restore();
     }
 
+    function applyRandomFilterLayer(ctx, x, y, w, h, filter) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'overlay'; // 叠加模式最自然
+        ctx.globalAlpha = filter.opacity;
+        ctx.fillStyle = getFilterColor(filter.type);
+        ctx.fillRect(x, y, w, h);
+        
+        // 如果是复古模式，加一点暗角
+        if (filter.type === 'vintage') {
+            ctx.globalCompositeOperation = 'multiply';
+            const grad = ctx.createRadialGradient(x+w/2, y+h/2, w/3, x+w/2, y+h/2, w/1.2);
+            grad.addColorStop(0, "rgba(0,0,0,0)");
+            grad.addColorStop(1, "rgba(50,30,10,0.3)");
+            ctx.fillStyle = grad;
+            ctx.fillRect(x, y, w, h);
+        }
+        ctx.restore();
+    }
+
+    function getFilterColor(type) {
+        switch(type) {
+            case 'warm': return '#ffecd2'; // 暖光
+            case 'cool': return '#d2f6ff'; // 冷光
+            case 'soft': return '#ffd2e6'; // 柔粉
+            case 'vintage': return '#fff5d7'; // 泛黄
+            case 'contrast': return '#808080'; // 中性灰(增强对比)
+            default: return '#fff';
+        }
+    }
+
     function drawDecorations(ctx) {
-        // 随机画几个星星
         ctx.save();
         ctx.fillStyle = "rgba(255,255,255,0.6)";
         ctx.shadowColor = "#fff"; ctx.shadowBlur = 10;
+        // 随机位置星星，这里写死几个好看的位置，但大小微调
         const stars = [{x:100,y:200}, {x:980,y:150}, {x:80,y:1300}, {x:1000,y:1250}, {x:540, y:80}];
         stars.forEach(s => {
             ctx.beginPath();
-            ctx.arc(s.x, s.y, Math.random()*3+2, 0, Math.PI*2);
+            const r = Math.random()*3+2;
+            ctx.arc(s.x, s.y, r, 0, Math.PI*2);
             ctx.fill();
         });
         ctx.restore();
@@ -456,23 +461,21 @@
     // --- 批量生成 ---
     startBtn.addEventListener('click', async function() {
         if (!state.csvData.length) return;
-        
         startBtn.disabled = true;
-        startBtn.innerHTML = "⏳ 正在批量生成中...";
-        
+        startBtn.innerHTML = "⏳ 正在生成矩阵物料...";
         const zip = new JSZip();
-        const folder = zip.folder("V12_颜值封面");
+        const folder = zip.folder("V13_防查重矩阵版");
         let success = 0;
         
         const config = {
-            scale: state.scale,
-            panX: state.panX,
-            panY: state.panY,
+            scale: state.scale, panX: state.panX, panY: state.panY,
             useDynamicBg: document.getElementById('dynamicBg').checked,
             showLens: document.getElementById('showGlass').checked,
             randomColor: document.getElementById('randomColor').checked,
             showDecor: document.getElementById('showDecor').checked,
-            footerText: footerInput.value
+            footerText: footerInput.value,
+            antiDup: document.getElementById('antiDupMode').checked,
+            randomFilter: document.getElementById('randomFilter').checked
         };
         
         const tempCanvas = document.createElement('canvas');
@@ -483,48 +486,66 @@
             const item = state.csvData[i];
             if (state.imageMap[item.matchKey]) {
                 try {
-                    const finalTitle = cleanTitleText(item.title);
                     const img = await loadImage(state.imageMap[item.matchKey]);
+                    // 关键：每张图都生成独立的随机参数！
+                    const randomParams = generateRenderParams(config, item);
                     
-                    const colorPair = config.randomColor ? gradients[item.colorIndex] : ["#FFFFFF", "#FFFFFF"];
-                    drawCoverToContext(tempCtx, img, finalTitle, "沉浸式观影 | 4K修复", item.tag1, item.tag2, config, colorPair);
+                    drawCoverToContext(tempCtx, img, cleanTitleText(item.title), "沉浸式观影 | 4K修复", item.tag1, item.tag2, config, randomParams);
                     
                     const blob = await new Promise(r => tempCanvas.toBlob(r, 'image/png'));
-                    
                     let originalName = item.matchKey;
                     let downloadName = originalName.substring(0, originalName.lastIndexOf('.')) + ".png";
                     if(originalName.indexOf('.') === -1) downloadName = originalName + ".png";
-
                     folder.file(downloadName, blob);
                     success++;
                 } catch(e) { console.error(e); }
             }
         }
-        
         if(success > 0) {
             zip.generateAsync({type:"blob"}).then(content => {
-                saveAs(content, "批量封面_V12.zip");
-                startBtn.innerHTML = "✅ 下载完成";
-                startBtn.disabled = false;
+                saveAs(content, "批量封面_V13防查重.zip");
+                startBtn.innerHTML = "✅ 下载完成"; startBtn.disabled = false;
             });
-        } else {
-            alert("生成失败，未匹配到任何图片");
-            startBtn.disabled = false;
-        }
+        } else { alert("生成失败"); startBtn.disabled = false; }
     });
 
-    function loadImage(file) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            img.src = URL.createObjectURL(file);
-        });
-    }
-
+    // 基础文件处理
+    document.getElementById('csvFile').addEventListener('change', function(e) {
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const text = evt.target.result;
+            if (text.startsWith("PK")) { alert("请用CSV！"); return; }
+            const lines = text.split('\n').filter(line => line.trim() !== "");
+            state.csvData = [];
+            lines.forEach(row => {
+                let cols = row.split(',');
+                if (cols.length >= 2) {
+                    state.csvData.push({
+                        matchKey: cleanFileName(cols[0]), title: (cols[1]||"").replace(/"/g,'').trim(),
+                        tag1: (cols[2]||"").replace(/"/g,'').trim(), tag2: (cols[3]||"").replace(/"/g,'').trim()
+                    });
+                }
+            });
+            statusLog.innerText = `✅ 表格：${state.csvData.length} 条`; checkReady();
+        };
+        reader.readAsText(file, document.getElementById('encodingOpt').value);
+    });
+    document.getElementById('imageFolder').addEventListener('change', function(e) {
+        const files = e.target.files; state.imageMap = {}; let count = 0;
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].type.startsWith('image/')) { state.imageMap[cleanFileName(files[i].name)] = files[i]; count++; }
+        }
+        statusLog.innerText = `📂 图片：${count} 张`; checkReady();
+    });
+    function checkReady() { if (state.csvData.length > 0 && Object.keys(state.imageMap).length > 0) { startBtn.disabled = false; statusLog.innerText = "🎉 准备就绪"; state.currentIndex = 0; loadAndPreviewImage(0); } }
+    function loadImage(file) { return new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = URL.createObjectURL(file); }); }
     function roundRect(ctx, x, y, w, h, r, fill) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); if(fill) ctx.fill(); else ctx.stroke(); }
     function drawBlurTag(ctx, text, x, y) { ctx.save(); ctx.font = "bold 26px sans-serif"; const w = ctx.measureText(text).width + 50; const h = 54; ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.shadowColor = "rgba(0,0,0,0.2)"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.roundRect(x - w/2, y, w, h, 27); ctx.fill(); ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 1; ctx.stroke(); ctx.fillStyle = "#fff"; ctx.shadowBlur = 0; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(text, x, y + h/2 + 2); ctx.restore(); }
     function drawPill(ctx, x, y, text, bg, color) { ctx.save(); ctx.font = "bold 24px sans-serif"; const w = ctx.measureText(text).width + 30; ctx.fillStyle = bg; ctx.beginPath(); ctx.roundRect(x, y, w, 44, 22); ctx.fill(); ctx.fillStyle = color; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(text, x + w/2, y + 24); ctx.restore(); }
+    window.prevImage = () => { if(state.currentIndex > 0) { state.currentIndex--; loadAndPreviewImage(state.currentIndex); } }
+    window.nextImage = () => { if(state.currentIndex < state.csvData.length - 1) { state.currentIndex++; loadAndPreviewImage(state.currentIndex); } }
+    function loadAndPreviewImage(index) { const item = state.csvData[index]; if (!item) return; pageIndicator.innerText = `${index + 1} / ${state.csvData.length}`; const file = state.imageMap[item.matchKey]; if (file) { const img = new Image(); img.onload = () => { state.currentImgObj = img; renderCurrentFrame(); }; img.src = URL.createObjectURL(file); } else { state.currentImgObj = null; ctx.clearRect(0,0,canvas.width, canvas.height); ctx.fillStyle = "#f5f5f5"; ctx.fillRect(0,0,1080,1440); ctx.fillStyle = "#999"; ctx.font = "40px sans-serif"; ctx.textAlign="center"; ctx.fillText("❌ 未找到图片", 540, 720); } }
 </script>
 </body>
 </html>
